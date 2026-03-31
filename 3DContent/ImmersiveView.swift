@@ -1,7 +1,10 @@
-//
-//  ImmersiveView.swift
-//  ImmersiveRoom
-//
-//  Created by Paolo Grommes  on 31.03.26.
-//
+import SwiftUI
+import RealityKit
 
+struct ImmersiveView: View {
+    var body: some View {
+        RealityView { content in
+            // Hier kommt später eure 3D-Szene rein
+        }
+    }
+}

@@ -8,14 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EC42F7C19D6000934D4 /* RealityKitContent */; };
+		FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */; };
+		FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE42F7C220C000934D4 /* AppConfig.swift */; };
+		FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE52F7C242F000934D4 /* Thema.swift */; };
+		FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE72F7C2482000934D4 /* ThemenService.swift */; };
+		FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */; };
+		FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */; };
+		FEAB2EF02F7C28FA000934D4 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EEF2F7C28FA000934D4 /* Auth */; };
+		FEAB2EF22F7C28FA000934D4 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF12F7C28FA000934D4 /* Functions */; };
+		FEAB2EF42F7C28FA000934D4 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF32F7C28FA000934D4 /* PostgREST */; };
+		FEAB2EF62F7C28FA000934D4 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF52F7C28FA000934D4 /* Realtime */; };
+		FEAB2EF82F7C28FA000934D4 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF72F7C28FA000934D4 /* Storage */; };
+		FEAB2EFB2F7C2B24000934D4 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EFA2F7C2B24000934D4 /* Supabase */; };
+		FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */; };
+		FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImmersiveRoom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEAB2EC32F7C19D6000934D4 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
-		FEAB2EE02F7C1D58000934D4 /* ImmersiveRommApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRommApp.swift; sourceTree = "<group>"; };
+		FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRoomApp.swift; sourceTree = "<group>"; };
 		FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
 		FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FEAB2EE42F7C220C000934D4 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		FEAB2EE52F7C242F000934D4 /* Thema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thema.swift; sourceTree = "<group>"; };
+		FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
+		FEAB2EE72F7C2482000934D4 /* ThemenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemenService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -44,6 +62,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEAB2EFB2F7C2B24000934D4 /* Supabase in Frameworks */,
+				FEAB2EF82F7C28FA000934D4 /* Storage in Frameworks */,
+				FEAB2EF42F7C28FA000934D4 /* PostgREST in Frameworks */,
+				FEAB2EF22F7C28FA000934D4 /* Functions in Frameworks */,
+				FEAB2EF02F7C28FA000934D4 /* Auth in Frameworks */,
+				FEAB2EF62F7C28FA000934D4 /* Realtime in Frameworks */,
 				FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -63,6 +87,7 @@
 				FEAB2ED92F7C1CCB000934D4 /* App */,
 				FEAB2EC12F7C19D6000934D4 /* ImmersiveRoom */,
 				FEAB2EC22F7C19D6000934D4 /* Packages */,
+				FEAB2EF92F7C2B24000934D4 /* Frameworks */,
 				FEAB2EC02F7C19D6000934D4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,7 +111,8 @@
 		FEAB2ED92F7C1CCB000934D4 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				FEAB2EE02F7C1D58000934D4 /* ImmersiveRommApp.swift */,
+				FEAB2EE42F7C220C000934D4 /* AppConfig.swift */,
+				FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -101,6 +127,7 @@
 		FEAB2EDB2F7C1CDC000934D4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				FEAB2EE52F7C242F000934D4 /* Thema.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -108,6 +135,8 @@
 		FEAB2EDC2F7C1CE3000934D4 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FEAB2EE72F7C2482000934D4 /* ThemenService.swift */,
+				FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -135,6 +164,13 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		FEAB2EF92F7C2B24000934D4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -156,6 +192,12 @@
 			name = ImmersiveRoom;
 			packageProductDependencies = (
 				FEAB2EC42F7C19D6000934D4 /* RealityKitContent */,
+				FEAB2EEF2F7C28FA000934D4 /* Auth */,
+				FEAB2EF12F7C28FA000934D4 /* Functions */,
+				FEAB2EF32F7C28FA000934D4 /* PostgREST */,
+				FEAB2EF52F7C28FA000934D4 /* Realtime */,
+				FEAB2EF72F7C28FA000934D4 /* Storage */,
+				FEAB2EFA2F7C2B24000934D4 /* Supabase */,
 			);
 			productName = ImmersiveRoom;
 			productReference = FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */;
@@ -185,6 +227,9 @@
 			);
 			mainGroup = FEAB2EB62F7C19D6000934D4;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = FEAB2EC02F7C19D6000934D4 /* Products */;
 			projectDirPath = "";
@@ -210,6 +255,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */,
+				FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */,
+				FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */,
+				FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */,
+				FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */,
+				FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */,
+				FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */,
+				FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -414,10 +467,51 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		FEAB2EC42F7C19D6000934D4 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
+		};
+		FEAB2EEF2F7C28FA000934D4 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		FEAB2EF12F7C28FA000934D4 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		FEAB2EF32F7C28FA000934D4 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		FEAB2EF52F7C28FA000934D4 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		FEAB2EF72F7C28FA000934D4 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		FEAB2EFA2F7C2B24000934D4 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
