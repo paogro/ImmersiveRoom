@@ -2,7 +2,7 @@
 //  AppModel.swift
 //  ImmersiveRoom
 //
-//  Created by Paolo Grommes  on 31.03.26.
+//  Created by Paolo Grommes on 31.03.26.
 //
 
 import SwiftUI
@@ -18,4 +18,7 @@ class AppModel {
         case open
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
+    
+    // Steuert ob die Themen sichtbar sind
+    var showThemen = false
 }
