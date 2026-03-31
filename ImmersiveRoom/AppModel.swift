@@ -19,6 +19,5 @@ class AppModel {
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
     
-    // Steuert ob die Themen sichtbar sind
-    var showThemen = false
+    var isImmersiveOpen = false
 }
