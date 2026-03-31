@@ -13,6 +13,9 @@
 /* Begin PBXFileReference section */
 		FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImmersiveRoom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEAB2EC32F7C19D6000934D4 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		FEAB2EE02F7C1D58000934D4 /* ImmersiveRommApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRommApp.swift; sourceTree = "<group>"; };
+		FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
+		FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -51,6 +54,13 @@
 		FEAB2EB62F7C19D6000934D4 = {
 			isa = PBXGroup;
 			children = (
+				FEAB2EDF2F7C1CFD000934D4 /* Resources */,
+				FEAB2EDE2F7C1CF2000934D4 /* 3DContent */,
+				FEAB2EDD2F7C1CEA000934D4 /* Views */,
+				FEAB2EDC2F7C1CE3000934D4 /* Services */,
+				FEAB2EDB2F7C1CDC000934D4 /* Models */,
+				FEAB2EDA2F7C1CD5000934D4 /* Spaces */,
+				FEAB2ED92F7C1CCB000934D4 /* App */,
 				FEAB2EC12F7C19D6000934D4 /* ImmersiveRoom */,
 				FEAB2EC22F7C19D6000934D4 /* Packages */,
 				FEAB2EC02F7C19D6000934D4 /* Products */,
@@ -71,6 +81,58 @@
 				FEAB2EC32F7C19D6000934D4 /* RealityKitContent */,
 			);
 			path = Packages;
+			sourceTree = "<group>";
+		};
+		FEAB2ED92F7C1CCB000934D4 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE02F7C1D58000934D4 /* ImmersiveRommApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FEAB2EDA2F7C1CD5000934D4 /* Spaces */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Spaces;
+			sourceTree = "<group>";
+		};
+		FEAB2EDB2F7C1CDC000934D4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FEAB2EDC2F7C1CE3000934D4 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		FEAB2EDD2F7C1CEA000934D4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FEAB2EDE2F7C1CF2000934D4 /* 3DContent */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */,
+			);
+			path = 3DContent;
+			sourceTree = "<group>";
+		};
+		FEAB2EDF2F7C1CFD000934D4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
