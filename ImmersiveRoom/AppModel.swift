@@ -1,13 +1,5 @@
-//
-//  AppModel.swift
-//  ImmersiveRoom
-//
-//  Created by Paolo Grommes on 31.03.26.
-//
-
 import SwiftUI
 
-/// Maintains app-wide state
 @MainActor
 @Observable
 class AppModel {
@@ -18,6 +10,6 @@ class AppModel {
         case open
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
-    
     var isImmersiveOpen = false
+    var ausgewaehltesThema: Thema? = nil
 }

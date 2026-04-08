@@ -4,6 +4,7 @@ struct ContentView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
+    @Environment(\.dismissWindow) var dismissWindow
     
     @State private var themen: [Thema] = []
     @State private var status = ""
@@ -30,8 +31,8 @@ struct ContentView: View {
                 
                 ForEach(themen) { thema in
                     Button(thema.name) {
-                        // Hier später: gewähltes Thema öffnen
-                        print("Gewählt: \(thema.name)")
+                        appModel.ausgewaehltesThema = thema
+                        dismissWindow()
                     }
                     .font(.title2)
                     .padding(.horizontal, 24)
@@ -43,6 +44,7 @@ struct ContentView: View {
                         await dismissImmersiveSpace()
                         appModel.isImmersiveOpen = false
                         themen = []
+                        appModel.ausgewaehltesThema = nil
                     }
                 }
                 .foregroundColor(.red)
