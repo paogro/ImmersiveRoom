@@ -12,7 +12,7 @@ struct ImmersiveView: View {
                 case "Sport":
                     SportRoomView()
                 case "Natur":
-                    NaturRoomView()
+                    NatureRoomView()
                 case "Technik":
                     TechnikRoomView()
                 case "Politik":
@@ -39,15 +39,4 @@ struct FallbackRoomView: View {
             content.add(skybox)
         }
     }
-}
-
-// Platzhalter damit der Code kompiliert
-struct NaturRoomView: View {
-    var body: some View { FallbackRoomView() }
-}
-struct TechnikRoomView: View {
-    var body: some View { FallbackRoomView() }
-}
-struct PolitikRoomView: View {
-    var body: some View { FallbackRoomView() }
 }

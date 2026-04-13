@@ -4,6 +4,7 @@ import RealityKitContent
 
 struct SportRoomView: View {
     @Environment(AppModel.self) private var appModel
+    @Environment(\.openWindow) var openWindow
     @State private var unterthemen: [Thema] = []
     @State private var status = "Lade..."
     
@@ -11,7 +12,6 @@ struct SportRoomView: View {
     
     var body: some View {
         RealityView { content, attachments in
-            // Dunkle Skybox (Nachthimmel-Feeling)
             let skybox = ModelEntity(
                 mesh: .generateSphere(radius: 50),
                 materials: [UnlitMaterial(color: UIColor(red: 0.05, green: 0.05, blue: 0.15, alpha: 1.0))]
@@ -19,23 +19,25 @@ struct SportRoomView: View {
             skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
             content.add(skybox)
             
-            // Debug-Panel direkt vor dem User
             if let debug = attachments.entity(for: "debug") {
                 debug.position = SIMD3<Float>(0, 1.5, -2)
                 content.add(debug)
             }
             
+            if let panel = attachments.entity(for: "zurueck") {
+                panel.position = SIMD3<Float>(0, 1.0, -2)
+                content.add(panel)
+            }
+            
         } update: { content, attachments in
             for (index, thema) in unterthemen.enumerated() {
                 if let panel = attachments.entity(for: thema.id.uuidString) {
-                    // Direkt vor dem User, nebeneinander
                     let x = Float(index - unterthemen.count / 2) * 1.5
                     panel.position = SIMD3<Float>(x, 1.5, -3)
                     content.add(panel)
                 }
             }
         } attachments: {
-            // Debug-Anzeige
             Attachment(id: "debug") {
                 Text(status)
                     .font(.title)
@@ -45,7 +47,18 @@ struct SportRoomView: View {
                     .cornerRadius(16)
             }
             
-            // Unterthemen
+            Attachment(id: "zurueck") {
+                Button("Zurück zur Übersicht") {
+                    appModel.ausgewaehltesThema = nil
+                    openWindow(id: "main")
+                }
+                .font(.title2)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial)
+                .cornerRadius(16)
+            }
+            
             ForEach(unterthemen) { thema in
                 Attachment(id: thema.id.uuidString) {
                     Text(thema.name)

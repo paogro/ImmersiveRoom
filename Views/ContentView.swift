@@ -32,7 +32,7 @@ struct ContentView: View {
                 ForEach(themen) { thema in
                     Button(thema.name) {
                         appModel.ausgewaehltesThema = thema
-                        dismissWindow()
+                        dismissWindow(id: "main")
                     }
                     .font(.title2)
                     .padding(.horizontal, 24)
@@ -52,6 +52,11 @@ struct ContentView: View {
             }
         }
         .padding(40)
+        .task {
+            if themen.isEmpty && appModel.isImmersiveOpen {
+                await ladeHauptkategorien()
+            }
+        }
     }
     
     func ladeHauptkategorien() async {

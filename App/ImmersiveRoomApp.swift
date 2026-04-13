@@ -12,12 +12,9 @@ struct ImmersiveRoomApp: App {
     @State private var appModel = AppModel()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView()
                 .environment(appModel)
-                .task {
-                    // Immersive Space automatisch beim Start öffnen
-                }
         }
 
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
@@ -33,3 +30,4 @@ struct ImmersiveRoomApp: App {
         .immersionStyle(selection: .constant(.full), in: .full)
     }
 }
+      
