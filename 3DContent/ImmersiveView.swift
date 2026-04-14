@@ -10,13 +10,13 @@ struct ImmersiveView: View {
             if let thema = appModel.ausgewaehltesThema {
                 switch thema.name {
                 case "Sport":
-                    SportRoomView()
+                    GenericRoomView(skyboxTextureName: "sport_equirectangular")
                 case "Natur":
-                    NatureRoomView()
+                    GenericRoomView(skyboxTextureName: "natur_equirectangular")
                 case "Technik":
-                    TechnikRoomView()
+                    GenericRoomView(skyboxTextureName: "technik_equirectangular")
                 case "Politik":
-                    PolitikRoomView()
+                    GenericRoomView(skyboxTextureName: "politik_equirectangular")
                 default:
                     FallbackRoomView()
                 }
@@ -27,11 +27,8 @@ struct ImmersiveView: View {
     }
 }
 
-// Fallback bis die anderen Räume gebaut sind
 struct FallbackRoomView: View {
     var body: some View {
-        RealityView { content in
-            // Kein Skybox - reale Welt sichtbar
-        }
+        RealityView { content in }
     }
 }

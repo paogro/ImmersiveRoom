@@ -9,11 +9,12 @@ struct NavigationState {
     let aktuellerIndex: Int
 }
 
-struct SportRoomView: View {
+struct GenericRoomView: View {
+    let skyboxTextureName: String
+    
     @Environment(AppModel.self) private var appModel
     @Environment(\.openWindow) var openWindow
     
-    // --- STATUS / GLIEDERUNG ---
     @State private var aktuelleThemen: [Thema] = []
     @State private var fokusThema: Thema? = nil
     @State private var childrenThemen: [Thema] = []
@@ -46,9 +47,9 @@ struct SportRoomView: View {
     
     var body: some View {
         RealityView { content, attachments in
-            // --- Skybox: Folgt nur Position, nicht Rotation ---
+            // --- Skybox ---
             var skyboxMaterial = UnlitMaterial()
-            if let texture = try? await TextureResource(named: "sport_equirectangular") {
+            if let texture = try? await TextureResource(named: skyboxTextureName) {
                 skyboxMaterial.color = .init(texture: .init(texture))
             }
             let skybox = ModelEntity(
@@ -61,7 +62,6 @@ struct SportRoomView: View {
             skyboxEntity.position = .zero
             content.add(skyboxEntity)
             
-            // Unsichtbarer Head-Tracker nur für Position
             let headTracker = AnchorEntity(.head)
             headTracker.anchoring.trackingMode = .continuous
             headTracker.name = "headTracker"
@@ -81,12 +81,10 @@ struct SportRoomView: View {
             
         } update: { content, attachments in
             
-            // Skybox folgt nur der Position des Kopfes, nicht der Rotation
             if let headTracker = content.entities.first(where: { $0.name == "headTracker" }) {
                 skyboxEntity.position = headTracker.position(relativeTo: nil)
             }
             
-            // === LESE-PANEL ===
             if leseModusAktiv, let lese = leseThema {
                 if let lesePanel = attachments.entity(for: "lese_\(lese.id.uuidString)") {
                     lesePanel.position = SIMD3<Float>(0, 1.5, -1.2)
@@ -110,7 +108,6 @@ struct SportRoomView: View {
                 attachments.entity(for: "thema_\(thema.id.uuidString)")?.isEnabled = true
             }
             
-            // === POSITIONIERUNG DER THEMEN ===
             for (index, thema) in currentStack.enumerated() {
                 if let panel = attachments.entity(for: "thema_\(thema.id.uuidString)") {
                     panel.name = "thema_\(thema.id.uuidString)"
@@ -183,15 +180,13 @@ struct SportRoomView: View {
         .task { await ladeErsteEbene() }
     }
     
-    // MARK: - Navigation Logik
-    
     private func ladeErsteEbene() async {
-        guard let sportThema = appModel.ausgewaehltesThema else { return }
+        guard let thema = appModel.ausgewaehltesThema else { return }
         pfad = []
         leseModusAktiv = false
         fokusThema = nil
         do {
-            let children = try await themenService.getUnterthemen(vonThemaId: sportThema.id)
+            let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
             aktuelleThemen = children
             aktuellerIndex = 0
             status = "Galerie: \(children.count) Themen"
@@ -226,8 +221,6 @@ struct SportRoomView: View {
             }
         } catch {}
     }
-    
-    // MARK: - Gesten
     
     private var tapGesture: some Gesture {
         SpatialTapGesture()
@@ -282,8 +275,6 @@ struct SportRoomView: View {
         MagnifyGesture().onChanged { value in baumScale = max(0.4, min(2.5, scaleStart * Float(value.magnification))) }
             .onEnded { _ in scaleStart = baumScale }
     }
-    
-    // MARK: - Panel Views
     
     @ViewBuilder
     private func themaPanel(thema: Thema, isFront: Bool) -> some View {

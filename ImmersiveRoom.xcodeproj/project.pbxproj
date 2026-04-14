@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B918033D2F8D2D2A00C330EE /* NatureRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B918033C2F8D2D2000C330EE /* NatureRoomView.swift */; };
-		B918033F2F8D2D4D00C330EE /* TechnikRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B918033E2F8D2D4C00C330EE /* TechnikRoomView.swift */; };
-		B91803412F8D2D5D00C330EE /* PolitikRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91803402F8D2D5C00C330EE /* PolitikRoomView.swift */; };
-		FE994A222F866B1C00646F26 /* SportRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE994A212F866B0900646F26 /* SportRoomView.swift */; };
+		B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91803402F8D2D5C00C330EE /* GenericRoomView.swift */; };
 		FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EC42F7C19D6000934D4 /* RealityKitContent */; };
 		FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */; };
 		FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE42F7C220C000934D4 /* AppConfig.swift */; };
@@ -29,10 +26,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B918033C2F8D2D2000C330EE /* NatureRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NatureRoomView.swift; sourceTree = "<group>"; };
-		B918033E2F8D2D4C00C330EE /* TechnikRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechnikRoomView.swift; sourceTree = "<group>"; };
-		B91803402F8D2D5C00C330EE /* PolitikRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolitikRoomView.swift; sourceTree = "<group>"; };
-		FE994A212F866B0900646F26 /* SportRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportRoomView.swift; sourceTree = "<group>"; };
+		B91803402F8D2D5C00C330EE /* GenericRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericRoomView.swift; sourceTree = "<group>"; };
 		FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImmersiveRoom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEAB2EC32F7C19D6000934D4 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRoomApp.swift; sourceTree = "<group>"; };
@@ -86,10 +80,7 @@
 		FE994A202F866AFF00646F26 /* Rooms */ = {
 			isa = PBXGroup;
 			children = (
-				B91803402F8D2D5C00C330EE /* PolitikRoomView.swift */,
-				B918033E2F8D2D4C00C330EE /* TechnikRoomView.swift */,
-				B918033C2F8D2D2000C330EE /* NatureRoomView.swift */,
-				FE994A212F866B0900646F26 /* SportRoomView.swift */,
+				B91803402F8D2D5C00C330EE /* GenericRoomView.swift */,
 			);
 			path = Rooms;
 			sourceTree = "<group>";
@@ -275,18 +266,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B91803412F8D2D5D00C330EE /* PolitikRoomView.swift in Sources */,
+				B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */,
 				FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */,
 				FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */,
-				B918033D2F8D2D2A00C330EE /* NatureRoomView.swift in Sources */,
 				FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */,
 				FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */,
 				FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */,
-				B918033F2F8D2D4D00C330EE /* TechnikRoomView.swift in Sources */,
 				FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */,
 				FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */,
 				FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */,
-				FE994A222F866B1C00646F26 /* SportRoomView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
