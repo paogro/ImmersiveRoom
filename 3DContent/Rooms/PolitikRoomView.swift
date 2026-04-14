@@ -17,20 +17,27 @@ struct PolitikRoomView: View {
         RealityView { content, attachments in
             let skybox = ModelEntity(
                 mesh: .generateSphere(radius: 50),
-                materials: [UnlitMaterial(color: UIColor(red: 0.05, green: 0.05, blue: 0.15, alpha: 1.0))]
+                materials: [UnlitMaterial(color: .systemRed)]
             )
             skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
+            
+            if let texture = try? TextureResource.load(named: "politik_equirectangular") {
+                var material = UnlitMaterial()
+                material.color = .init(texture: .init(texture))
+                skybox.model?.materials = [material]
+            }
+            
             content.add(skybox)
             
             if let panel = attachments.entity(for: "zurueck") {
-                panel.position = SIMD3<Float>(0, 1.2, -2)
+                panel.position = SIMD3<Float>(0, 1.2, -1.5)
                 content.add(panel)
             }
         } attachments: {
             Attachment(id: "zurueck") {
                 Button("Zurück zur Übersicht") {
-                    appModel.ausgewaehltesThema = nil
                     openWindow(id: "main")
+                    appModel.ausgewaehltesThema = nil
                 }
                 .font(.title2)
                 .padding(.horizontal, 24)

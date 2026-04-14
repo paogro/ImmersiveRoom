@@ -48,10 +48,15 @@ struct SportRoomView: View {
     var body: some View {
         RealityView { content, attachments in
             // --- Skybox ---
+            var skyboxMaterial = UnlitMaterial()
+            if let texture = try? await TextureResource(named: "sport_equirectangular") {
+                skyboxMaterial.color = .init(texture: .init(texture))
+            }
             let skybox = ModelEntity(
                 mesh: .generateSphere(radius: 50),
-                materials: [UnlitMaterial(color: UIColor(red: 0.05, green: 0.05, blue: 0.15, alpha: 1.0))]
+                materials: [skyboxMaterial]
             )
+            
             skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
             let skyAnchor = AnchorEntity(.head)
             skyAnchor.anchoring.trackingMode = .continuous

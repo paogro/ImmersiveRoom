@@ -31,12 +31,7 @@ struct ImmersiveView: View {
 struct FallbackRoomView: View {
     var body: some View {
         RealityView { content in
-            let skybox = ModelEntity(
-                mesh: .generateSphere(radius: 50),
-                materials: [UnlitMaterial(color: .systemTeal)]
-            )
-            skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
-            content.add(skybox)
+            // Kein Skybox - reale Welt sichtbar
         }
     }
 }
