@@ -12,14 +12,21 @@ struct SportRoomView: View {
     @State private var pfad: [Thema] = []
     @State private var status = "Lade..."
     
+    // Lesemodus
+    @State private var leseThema: Thema? = nil
+    @State private var leseModusAktiv = false
+    
     // Animation
     @State private var panelsEingeblendet = false
     
     // Gesten-State
-    @State private var baumOffset: SIMD3<Float> = .zero
-    @State private var dragStartOffset: SIMD3<Float> = .zero
     @State private var baumScale: Float = 1.0
     @State private var scaleStart: Float = 1.0
+    
+    // Hold-Geste (Long Press über DragGesture)
+    @State private var dragStartZeit: Date = .distantPast
+    @State private var dragGestartetAufName: String = ""
+    @State private var hatSichBewegt = false
     
     // RealityKit
     @State private var rootEntity: Entity = Entity()
@@ -57,17 +64,37 @@ struct SportRoomView: View {
                 content.add(debug)
             }
             
-            // Zurück
+            // Zurück-Button
             if let zurueck = attachments.entity(for: "zurueck") {
                 zurueck.position = SIMD3<Float>(0, 0.6, -2.3)
                 content.add(zurueck)
             }
             
         } update: { content, attachments in
+            // === LESE-PANEL ===
+            if leseModusAktiv, let lese = leseThema {
+                if let lesePanel = attachments.entity(for: "lese_\(lese.id.uuidString)") {
+                    lesePanel.position = SIMD3<Float>(0, 1.5, -1.8)
+                    lesePanel.name = "lese_\(lese.id.uuidString)"
+                    
+                    if lesePanel.components[InputTargetComponent.self] == nil {
+                        lesePanel.components.set(InputTargetComponent(allowedInputTypes: .all))
+                        lesePanel.components.set(CollisionComponent(
+                            shapes: [.generateBox(size: SIMD3<Float>(1.5, 1.0, 0.05))]
+                        ))
+                    }
+                    
+                    rootEntity.addChild(lesePanel)
+                }
+                
+                rootEntity.scale = SIMD3<Float>(repeating: baumScale)
+                return
+            }
+            
             // === FOKUS-THEMA (Titel oben) ===
             if let fokus = fokusThema {
                 if let titelPanel = attachments.entity(for: "fokus_\(fokus.id.uuidString)") {
-                    titelPanel.position = SIMD3<Float>(0, 1.9, -2.5)
+                    titelPanel.position = SIMD3<Float>(0, 1.95, -2.5)
                     titelPanel.name = "fokus_\(fokus.id.uuidString)"
                     
                     if titelPanel.components[InputTargetComponent.self] == nil {
@@ -81,12 +108,12 @@ struct SportRoomView: View {
                 }
             }
             
-            // === SICHTBARE PANELS ===
-            let positionen = berechneHalbrundPositionen(
+            // === SICHTBARE PANELS – UM DEN USER HERUM ===
+            let positionen = berechneUmgebungsPositionen(
                 anzahl: sichtbareThemen.count,
-                radius: 2.8,
+                radius: 3.0,
                 y: fokusThema != nil ? 1.35 : 1.5,
-                winkelBereich: 1.2
+                bogenGrad: 120.0
             )
             
             for (index, thema) in sichtbareThemen.enumerated() {
@@ -98,16 +125,6 @@ struct SportRoomView: View {
                     if index < positionen.count {
                         panel.position = positionen[index]
                         panel.name = attachmentID
-                        
-                        let winkel = berechneWinkel(
-                            index: index,
-                            anzahl: sichtbareThemen.count,
-                            winkelBereich: 1.2
-                        )
-                        panel.transform.rotation = simd_quatf(
-                            angle: winkel,
-                            axis: SIMD3<Float>(0, 1, 0)
-                        )
                         
                         if panel.components[InputTargetComponent.self] == nil {
                             panel.components.set(InputTargetComponent(allowedInputTypes: .all))
@@ -122,7 +139,6 @@ struct SportRoomView: View {
             }
             
             // Baum-Transform
-            rootEntity.position = baumOffset
             rootEntity.scale = SIMD3<Float>(repeating: baumScale)
         } attachments: {
             // Debug
@@ -147,30 +163,66 @@ struct SportRoomView: View {
                 }
             }
             
+            // Lese-Panel
+            if leseModusAktiv, let lese = leseThema {
+                Attachment(id: "lese_\(lese.id.uuidString)") {
+                    lesePanel(thema: lese)
+                }
+            }
+            
             // Auswahl-Panels
-            if fokusThema == nil {
+            if fokusThema == nil && !leseModusAktiv {
                 ForEach(aktuelleThemen) { thema in
                     Attachment(id: "thema_\(thema.id.uuidString)") {
-                        glasPanel(thema: thema, istChild: false)
+                        themaPanel(thema: thema)
                     }
                 }
             }
             
             // Children-Panels
-            if fokusThema != nil {
+            if fokusThema != nil && !leseModusAktiv {
                 ForEach(childrenThemen) { thema in
                     Attachment(id: "child_\(thema.id.uuidString)") {
-                        glasPanel(thema: thema, istChild: true)
+                        themaPanel(thema: thema)
                     }
                 }
             }
         }
         .gesture(tapGesture)
-        .gesture(dragGesture)
+        .gesture(holdGesture)
         .gesture(zoomGesture)
         .task {
             await ladeErsteEbene()
         }
+    }
+    
+    // MARK: - Positionen um den User herum
+    
+    private func berechneUmgebungsPositionen(
+        anzahl: Int,
+        radius: Float,
+        y: Float,
+        bogenGrad: Float
+    ) -> [SIMD3<Float>] {
+        guard anzahl > 0 else { return [] }
+        var positionen: [SIMD3<Float>] = []
+        
+        let bogenRad = bogenGrad * .pi / 180.0
+        let startWinkel = -bogenRad / 2.0
+        
+        for i in 0..<anzahl {
+            let fortschritt: Float = anzahl > 1
+                ? Float(i) / Float(anzahl - 1)
+                : 0.5
+            let winkel = startWinkel + fortschritt * bogenRad
+            
+            let x = sin(winkel) * radius
+            let z = -cos(winkel) * radius
+            
+            positionen.append(SIMD3<Float>(x, y, z))
+        }
+        
+        return positionen
     }
     
     // MARK: - Gesten
@@ -181,11 +233,21 @@ struct SportRoomView: View {
             .onEnded { value in
                 let name = value.entity.name
                 
+                // Lese-Panel schließen
+                if name.hasPrefix("lese_") {
+                    leseModusAktiv = false
+                    leseThema = nil
+                    animierePanels()
+                    return
+                }
+                
+                // Fokus-Titel: zurück
                 if name.hasPrefix("fokus_") {
                     Task { await zurueckEineEbene() }
                     return
                 }
                 
+                // Thema-Panel: navigieren
                 if name.hasPrefix("thema_") {
                     let uuidString = String(name.dropFirst("thema_".count))
                     if let thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString }) {
@@ -194,6 +256,7 @@ struct SportRoomView: View {
                     return
                 }
                 
+                // Child-Panel: navigieren
                 if name.hasPrefix("child_") {
                     let uuidString = String(name.dropFirst("child_".count))
                     if let thema = childrenThemen.first(where: { $0.id.uuidString == uuidString }) {
@@ -204,19 +267,61 @@ struct SportRoomView: View {
             }
     }
     
-    private var dragGesture: some Gesture {
-        DragGesture()
+    private var holdGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
             .targetedToAnyEntity()
             .onChanged { value in
-                let translation = value.convert(value.translation3D, from: .local, to: .scene)
-                baumOffset = dragStartOffset + SIMD3<Float>(
-                    Float(translation.x),
-                    Float(translation.y),
-                    Float(translation.z)
+                let name = value.entity.name
+                
+                // Neuer Drag gestartet
+                if dragGestartetAufName != name {
+                    dragGestartetAufName = name
+                    dragStartZeit = Date()
+                    hatSichBewegt = false
+                }
+                
+                // Prüfen ob sich der Finger bewegt hat
+                let translation = value.translation3D
+                let bewegung = sqrt(
+                    Float(translation.x * translation.x) +
+                    Float(translation.y * translation.y) +
+                    Float(translation.z * translation.z)
                 )
+                if bewegung > 0.01 {
+                    hatSichBewegt = true
+                }
             }
-            .onEnded { _ in
-                dragStartOffset = baumOffset
+            .onEnded { value in
+                let name = value.entity.name
+                let halteDauer = Date().timeIntervalSince(dragStartZeit)
+                
+                // Nur als Long Press werten wenn:
+                // - Mindestens 0.5 Sekunden gehalten
+                // - Finger hat sich nicht bewegt
+                guard halteDauer >= 0.5 && !hatSichBewegt else {
+                    dragGestartetAufName = ""
+                    return
+                }
+                
+                // Thema-Panel: Lesemodus
+                if name.hasPrefix("thema_") {
+                    let uuidString = String(name.dropFirst("thema_".count))
+                    if let thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString }) {
+                        leseThema = thema
+                        leseModusAktiv = true
+                    }
+                }
+                
+                // Child-Panel: Lesemodus
+                if name.hasPrefix("child_") {
+                    let uuidString = String(name.dropFirst("child_".count))
+                    if let thema = childrenThemen.first(where: { $0.id.uuidString == uuidString }) {
+                        leseThema = thema
+                        leseModusAktiv = true
+                    }
+                }
+                
+                dragGestartetAufName = ""
             }
     }
     
@@ -230,82 +335,42 @@ struct SportRoomView: View {
             }
     }
     
-    // MARK: - Positionen
-    
-    private func berechneHalbrundPositionen(anzahl: Int, radius: Float, y: Float, winkelBereich: Float) -> [SIMD3<Float>] {
-        guard anzahl > 0 else { return [] }
-        var positionen: [SIMD3<Float>] = []
-        let maxWinkel = min(Float(anzahl - 1) * 0.3, winkelBereich)
-        let startWinkel = -maxWinkel / 2.0
-        
-        for i in 0..<anzahl {
-            let fortschritt: Float = anzahl > 1
-                ? Float(i) / Float(anzahl - 1)
-                : 0.5
-            let winkel = startWinkel + fortschritt * maxWinkel
-            let x = sin(winkel) * radius
-            let z = -cos(winkel) * radius
-            positionen.append(SIMD3<Float>(x, y, z))
-        }
-        return positionen
-    }
-    
-    private func berechneWinkel(index: Int, anzahl: Int, winkelBereich: Float) -> Float {
-        let maxWinkel = min(Float(anzahl - 1) * 0.3, winkelBereich)
-        let startWinkel = -maxWinkel / 2.0
-        let fortschritt: Float = anzahl > 1
-            ? Float(index) / Float(anzahl - 1)
-            : 0.5
-        return startWinkel + fortschritt * maxWinkel
-    }
-    
-    // MARK: - Liquid Glass Panels
+    // MARK: - Panel Views
     
     @ViewBuilder
-    private func glasPanel(thema: Thema, istChild: Bool) -> some View {
+    private func themaPanel(thema: Thema) -> some View {
         Text(thema.name)
-            .font(istChild ? .largeTitle : .extraLargeTitle)
-            .fontWeight(.medium)
-            .foregroundStyle(
-                LinearGradient(
-                    colors: [.white, .white.opacity(0.85)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
+            .font(.extraLargeTitle)
+            .fontWeight(.semibold)
+            .foregroundStyle(.white)
             .multilineTextAlignment(.center)
-            .frame(minWidth: istChild ? 160 : 200)
-            .padding(istChild ? 24 : 30)
+            .frame(minWidth: 220)
+            .padding(.horizontal, 40)
+            .padding(.vertical, 28)
             .background {
                 ZStack {
-                    // Basis-Glas
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: 28)
                         .fill(.ultraThinMaterial)
                     
-                    // Irisierender Schimmer oben
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: 28)
                         .fill(
                             LinearGradient(
-                                colors: [
-                                    .white.opacity(0.2),
-                                    .blue.opacity(0.08),
-                                    .purple.opacity(0.05),
-                                    .clear
+                                stops: [
+                                    .init(color: .white.opacity(0.15), location: 0),
+                                    .init(color: .clear, location: 0.4)
                                 ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
                         )
                     
-                    // Innerer Lichtstreifen (Liquid-Effekt)
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: 28)
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    .white.opacity(0.5),
+                                    .white.opacity(0.4),
                                     .white.opacity(0.1),
-                                    .blue.opacity(0.15),
-                                    .white.opacity(0.3)
+                                    .white.opacity(0.2)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -314,12 +379,12 @@ struct SportRoomView: View {
                         )
                 }
             }
-            .shadow(color: .blue.opacity(0.15), radius: 20, y: 8)
-            .shadow(color: .white.opacity(0.1), radius: 5, y: -2)
+            .shadow(color: .blue.opacity(0.15), radius: 20, y: 10)
+            .hoverEffect(.highlight)
             .scaleEffect(panelsEingeblendet ? 1.0 : 0.7)
             .opacity(panelsEingeblendet ? 1.0 : 0.0)
             .animation(
-                .spring(response: 0.5, dampingFraction: 0.7),
+                .spring(response: 0.5, dampingFraction: 0.75),
                 value: panelsEingeblendet
             )
     }
@@ -329,86 +394,185 @@ struct SportRoomView: View {
         HStack(spacing: 14) {
             Image(systemName: "chevron.left")
                 .font(.title2)
-                .foregroundColor(.white.opacity(0.7))
+                .fontWeight(.medium)
+                .foregroundColor(.white.opacity(0.6))
             
             Text(thema.name)
                 .font(.extraLargeTitle)
-                .fontWeight(.semibold)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.white, .white.opacity(0.9)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .fontWeight(.bold)
+                .foregroundStyle(.white)
         }
-        .padding(.horizontal, 34)
-        .padding(.vertical, 22)
+        .padding(.horizontal, 40)
+        .padding(.vertical, 24)
         .background {
             ZStack {
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 32)
                     .fill(.ultraThinMaterial)
                 
-                // Stärkerer Glas-Effekt für Fokus
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 32)
                     .fill(
                         LinearGradient(
-                            colors: [
-                                .blue.opacity(0.2),
-                                .purple.opacity(0.1),
-                                .blue.opacity(0.05),
-                                .clear
+                            stops: [
+                                .init(color: .blue.opacity(0.15), location: 0),
+                                .init(color: .purple.opacity(0.05), location: 0.5),
+                                .init(color: .clear, location: 1.0)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                 
-                // Leuchtender Rand
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 32)
                     .stroke(
                         LinearGradient(
                             colors: [
-                                .white.opacity(0.6),
-                                .blue.opacity(0.3),
-                                .purple.opacity(0.2),
-                                .white.opacity(0.4)
+                                .white.opacity(0.5),
+                                .blue.opacity(0.2),
+                                .white.opacity(0.3)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 2
+                        lineWidth: 1.5
                     )
             }
         }
-        .shadow(color: .blue.opacity(0.25), radius: 25, y: 8)
-        .shadow(color: .purple.opacity(0.1), radius: 15, y: -3)
+        .shadow(color: .blue.opacity(0.2), radius: 25, y: 10)
+        .hoverEffect(.highlight)
+    }
+    
+    @ViewBuilder
+    private func lesePanel(thema: Thema) -> some View {
+        VStack(spacing: 20) {
+            // Header
+            HStack {
+                Text(thema.name)
+                    .font(.extraLargeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.secondary)
+            }
+            
+            Divider()
+                .overlay(.white.opacity(0.2))
+            
+            // Inhalt
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Thema: \(thema.name)")
+                        .font(.title)
+                        .foregroundColor(.white)
+                    
+                    Text("Ebene: \(thema.level)")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                    
+                    if let parentId = thema.parentId {
+                        Text("Parent: \(parentId.uuidString.prefix(8))...")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Divider()
+                        .overlay(.white.opacity(0.1))
+                    
+                    Text("Hier können später Lerninhalte, Texte, Bilder oder interaktive Elemente für \"\(thema.name)\" angezeigt werden.")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.8))
+                        .lineSpacing(6)
+                    
+                    Text("Halte ein Thema gedrückt um den Lesemodus zu öffnen. Tippe auf X um zu schließen.")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 10)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(width: 700, height: 500)
+        .padding(40)
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: 32)
+                    .fill(.ultraThinMaterial)
+                
+                RoundedRectangle(cornerRadius: 32)
+                    .fill(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white.opacity(0.1), location: 0),
+                                .init(color: .clear, location: 0.3)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                
+                RoundedRectangle(cornerRadius: 32)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.4),
+                                .white.opacity(0.1),
+                                .white.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            }
+        }
+        .shadow(color: .blue.opacity(0.15), radius: 30, y: 12)
+        .scaleEffect(leseModusAktiv ? 1.0 : 0.5)
+        .opacity(leseModusAktiv ? 1.0 : 0.0)
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: leseModusAktiv
+        )
     }
     
     @ViewBuilder
     private func zurueckButton() -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: "arrow.left")
-                .font(.body)
+                .font(.title3)
+                .fontWeight(.medium)
             Text("Übersicht")
                 .font(.title3)
+                .fontWeight(.medium)
         }
-        .foregroundColor(.white.opacity(0.8))
-        .padding(.horizontal, 22)
-        .padding(.vertical, 12)
+        .foregroundColor(.white)
+        .padding(.horizontal, 26)
+        .padding(.vertical, 14)
         .background {
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(.ultraThinMaterial)
                 
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white.opacity(0.1), location: 0),
+                                .init(color: .clear, location: 0.5)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                 
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(.white.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(.white.opacity(0.2), lineWidth: 1)
             }
         }
-        .shadow(color: .black.opacity(0.2), radius: 10, y: 4)
+        .shadow(color: .blue.opacity(0.1), radius: 15, y: 5)
+        .hoverEffect(.highlight)
         .onTapGesture {
             appModel.ausgewaehltesThema = nil
             openWindow(id: "main")
@@ -419,7 +583,7 @@ struct SportRoomView: View {
     
     private func animierePanels() {
         panelsEingeblendet = false
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.1)) {
             panelsEingeblendet = true
         }
     }
@@ -434,6 +598,8 @@ struct SportRoomView: View {
         pfad = []
         fokusThema = nil
         childrenThemen = []
+        leseModusAktiv = false
+        leseThema = nil
         await ladeChildren(vonThemaId: sportThema.id)
         animierePanels()
     }
@@ -454,7 +620,9 @@ struct SportRoomView: View {
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
             if children.isEmpty {
-                status = "\(thema.name) – keine Unterthemen"
+                leseThema = thema
+                leseModusAktiv = true
+                status = "\(thema.name) – Lesemodus"
                 return
             }
             fokusThema = thema
@@ -471,7 +639,9 @@ struct SportRoomView: View {
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
             if children.isEmpty {
-                status = "\(thema.name) – keine weiteren Unterthemen"
+                leseThema = thema
+                leseModusAktiv = true
+                status = "\(thema.name) – Lesemodus"
                 return
             }
             if let fokus = fokusThema {
