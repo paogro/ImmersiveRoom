@@ -12,4 +12,5 @@ class AppModel {
     var immersiveSpaceState = ImmersiveSpaceState.closed
     var isImmersiveOpen = false
     var ausgewaehltesThema: Thema? = nil
+    var ausgewaehlteThemenProEbene: [UUID] = []
 }
