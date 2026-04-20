@@ -1,15 +1,9 @@
-//
-//  ImmersiveRoomApp.swift
-//  ImmersiveRoom
-//
-//  Created by Paolo Grommes on 31.03.26.
-//
-
 import SwiftUI
 
 @main
 struct ImmersiveRoomApp: App {
     @State private var appModel = AppModel()
+    @State private var immersionStyle: ImmersionStyle = .mixed
 
     var body: some Scene {
         WindowGroup(id: "main") {
@@ -26,8 +20,14 @@ struct ImmersiveRoomApp: App {
                 .onDisappear {
                     appModel.immersiveSpaceState = .closed
                 }
+                .onChange(of: appModel.ausgewaehltesThema) { _, newValue in
+                    if newValue != nil {
+                        immersionStyle = .full
+                    } else {
+                        immersionStyle = .mixed
+                    }
+                }
         }
-        .immersionStyle(selection: .constant(.full), in: .full)
+        .immersionStyle(selection: $immersionStyle, in: .mixed, .full)
     }
 }
-      

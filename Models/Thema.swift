@@ -1,6 +1,6 @@
 import Foundation
 
-struct Thema: Codable, Identifiable {
+struct Thema: Codable, Identifiable, Equatable {
     let id: UUID
     let name: String
     let parentId: UUID?
