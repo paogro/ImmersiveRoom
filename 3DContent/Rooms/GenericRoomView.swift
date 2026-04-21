@@ -55,10 +55,7 @@ struct GenericRoomView: View {
                 materials: [skyboxMaterial]
             )
             skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
-            let skyAnchor = AnchorEntity(.head)
-            skyAnchor.anchoring.trackingMode = .continuous
-            skyAnchor.addChild(skybox)
-            content.add(skyAnchor)
+            content.add(skybox)
             
             rootEntity.position = .zero
             content.add(rootEntity)
@@ -93,14 +90,26 @@ struct GenericRoomView: View {
             // === FOKUS-THEMA (Breadcrumb UNTEN) ===
             if let fokus = fokusThema {
                 if let titelPanel = attachments.entity(for: "fokus_\(fokus.id.uuidString)") {
-                    titelPanel.position = SIMD3<Float>(0, 0.8, -2.0)  // Unten
                     titelPanel.name = "fokus_\(fokus.id.uuidString)"
-                    
+
                     if titelPanel.components[InputTargetComponent.self] == nil {
                         titelPanel.components.set(InputTargetComponent(allowedInputTypes: .all))
-                        titelPanel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.2, 0.35, 0.05))]))
+                        titelPanel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.35, 0.4, 0.05))]))
                     }
-                    rootEntity.addChild(titelPanel)
+
+                    if titelPanel.parent == nil {
+                        // Start an der Position des angetippten Themas (oben, mittig),
+                        // damit das Panel sichtbar nach unten in die Fokus-Position gleitet.
+                        titelPanel.position = SIMD3<Float>(0, 1.4, -2.0)
+                        rootEntity.addChild(titelPanel)
+
+                        let zielTransform = Transform(
+                            scale: SIMD3<Float>(repeating: 1.0),
+                            rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
+                            translation: SIMD3<Float>(0, 0.8, -2.0)
+                        )
+                        titelPanel.move(to: zielTransform, relativeTo: nil, duration: 0.55, timingFunction: .easeInOut)
+                    }
                 }
             }
             
@@ -115,7 +124,7 @@ struct GenericRoomView: View {
                     
                     if panel.components[InputTargetComponent.self] == nil {
                         panel.components.set(InputTargetComponent(allowedInputTypes: .all))
-                        panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.8, 0.3, 0.05))]))
+                        panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.95, 0.35, 0.05))]))
                     }
                     if panel.parent == nil { rootEntity.addChild(panel) }
                     
@@ -185,9 +194,9 @@ struct GenericRoomView: View {
             }
             
             if fokusThema != nil && !leseModusAktiv {
-                ForEach(childrenThemen) { thema in
+                ForEach(Array(childrenThemen.enumerated()), id: \.element.id) { index, thema in
                     Attachment(id: "child_\(thema.id.uuidString)") {
-                        themaPanel(thema: thema, isFront: false)
+                        themaPanel(thema: thema, isFront: false, animationDelay: 0.3 + Double(index) * 0.07)
                     }
                 }
             }
@@ -321,15 +330,15 @@ struct GenericRoomView: View {
     // MARK: - Panel Views
 
     @ViewBuilder
-    private func themaPanel(thema: Thema, isFront: Bool) -> some View {
+    private func themaPanel(thema: Thema, isFront: Bool, animationDelay: Double = 0) -> some View {
         Text(thema.name)
             .font(.extraLargeTitle)
             .fontWeight(isFront ? .bold : .semibold)
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
-            .frame(minWidth: 220)
-            .padding(.horizontal, 40)
-            .padding(.vertical, 28)
+            .frame(minWidth: 260)
+            .padding(.horizontal, 48)
+            .padding(.vertical, 32)
             .background {
                 ZStack {
                     // Dunklere Basis für Kontrast auf hellem Hintergrund
@@ -365,7 +374,7 @@ struct GenericRoomView: View {
             .hoverEffect(.highlight)
             .scaleEffect(panelsEingeblendet ? 1.0 : 0.7)
             .opacity(panelsEingeblendet ? 1.0 : 0.0)
-            .animation(.spring(response: 0.5, dampingFraction: 0.75), value: panelsEingeblendet)
+            .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(animationDelay), value: panelsEingeblendet)
     }
 
     @ViewBuilder
@@ -374,16 +383,16 @@ struct GenericRoomView: View {
             Image(systemName: "chevron.left").font(.title2).fontWeight(.medium).foregroundColor(.white.opacity(0.7))
             Text(thema.name).font(.extraLargeTitle).fontWeight(.bold).foregroundStyle(.white)
         }
-        .padding(.horizontal, 40)
-        .padding(.vertical, 24)
+        .padding(.horizontal, 48)
+        .padding(.vertical, 28)
         .background {
             ZStack {
                 RoundedRectangle(cornerRadius: 32)
                     .fill(.black.opacity(0.3))
-                
+
                 RoundedRectangle(cornerRadius: 32)
                     .fill(.ultraThinMaterial)
-                
+
                 RoundedRectangle(cornerRadius: 32)
                     .fill(LinearGradient(
                         stops: [
@@ -393,7 +402,7 @@ struct GenericRoomView: View {
                         ],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
-                
+
                 RoundedRectangle(cornerRadius: 32)
                     .stroke(LinearGradient(
                         colors: [.white.opacity(0.6), .blue.opacity(0.3), .white.opacity(0.4)],
@@ -403,6 +412,9 @@ struct GenericRoomView: View {
         }
         .shadow(color: .blue.opacity(0.3), radius: 25, y: 10)
         .hoverEffect(.highlight)
+        .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
+        .opacity(panelsEingeblendet ? 1.0 : 0.0)
+        .animation(.spring(response: 0.45, dampingFraction: 0.8), value: panelsEingeblendet)
     }
 
     @ViewBuilder
