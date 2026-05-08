@@ -1,0 +1,103 @@
+<h2>Breadcrumb — Stapel Closed State</h2>
+<p class="subtitle">Wie die Karten in 3D gestapelt stehen (Positionen in Metern)</p>
+
+<div class="section">
+  <div class="split">
+
+    <div class="mockup">
+      <div class="mockup-header">Visuell (von vorne)</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:40px 24px 32px; display:flex; align-items:flex-start; justify-content:center; min-height:240px;">
+        <div style="position:relative; width:220px; height:200px;">
+
+          <!-- Card 3 — oldest ancestor -->
+          <div style="
+            position:absolute; top:40px; left:50%; transform:translateX(-50%);
+            width:168px; padding:15px 0;
+            background: #1a1a2e;
+            border: 1.5px solid rgba(255,255,255,0.22);
+            border-radius:14px;
+            text-align:center; color:#666; font-size:11px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+          ">Sport</div>
+
+          <!-- Card 2 -->
+          <div style="
+            position:absolute; top:22px; left:50%; transform:translateX(-50%);
+            width:182px; padding:15px 0;
+            background: #1c1c35;
+            border: 1.5px solid rgba(120,140,255,0.32);
+            border-radius:14px;
+            text-align:center; color:#99a; font-size:12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+          ">Fußball</div>
+
+          <!-- Card 1 — front (fokusThema) -->
+          <div style="
+            position:absolute; top:0; left:50%; transform:translateX(-50%);
+            width:200px; padding:17px 0;
+            background: linear-gradient(135deg, #1a2a4a, #1e1840);
+            border: 2px solid rgba(100,180,255,0.7);
+            border-radius:14px;
+            text-align:center; color:#fff; font-weight:bold; font-size:13px;
+            box-shadow: 0 0 22px rgba(80,160,255,0.4), 0 8px 20px rgba(0,0,0,0.6);
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            z-index:3;
+          ">
+            <span style="color:#88c; font-size:15px;">⊞</span> WM
+          </div>
+
+          <div style="position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);white-space:nowrap;color:#444;font-size:10px;">Icon ⊞ zeigt: Stapel ist da</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Positionen (RealityKit, Meter)</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:24px; font-family:monospace; font-size:11px; color:#aaa; line-height:2;">
+        <div><span style="color:#5af;">fokusThema (front)</span></div>
+        <div style="color:#777;">pos: (0, 0.80, -2.00)</div>
+        <div style="color:#777;">scale: 1.00</div>
+        <br>
+        <div><span style="color:#88c;">pfad.last (–1)</span></div>
+        <div style="color:#777;">pos: (0, 0.74, -2.02)</div>
+        <div style="color:#777;">scale: 0.96</div>
+        <br>
+        <div><span style="color:#668;">pfad[–2]</span></div>
+        <div style="color:#777;">pos: (0, 0.68, -2.04)</div>
+        <div style="color:#777;">scale: 0.92</div>
+        <br>
+        <div style="color:#444; font-size:10px;">Δ pro Karte: y –0.06m, z –0.02m, scale –0.04</div>
+        <div style="color:#444; font-size:10px;">Kein opacity-Change — alle voll opak</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Icon auf der Frontkarte</h3>
+  <div class="options">
+    <div class="option" data-choice="stack-icon" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>⊞ Stack-Icon (square.stack.fill)</h3>
+        <p>Zeigt visuell dass es ein Stapel ist — kein Chevron mehr. Klarer Hinweis auf "aufklappbar".</p>
+      </div>
+    </div>
+    <div class="option" data-choice="chevron-down" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>‹ Name  ˅ (Chevron links + Pfeil unten)</h3>
+        <p>Chevron links bleibt (Hierarchie-Hinweis), kleiner Pfeil rechts signalisiert "aufklappbar nach unten".</p>
+      </div>
+    </div>
+    <div class="option" data-choice="no-icon" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Kein Icon-Change</h3>
+        <p>Nur der Stapel selbst kommuniziert die Interaktivität. Sauberer, weniger visuelles Rauschen.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle">Klicke ein Icon oder antworte im Terminal.</p>

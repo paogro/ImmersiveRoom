@@ -13,10 +13,12 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 30) {
-            Text("Wissensraum")
-                .font(.largeTitle)
-            
             if !appModel.isImmersiveOpen {
+                Image("VIEWS")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 320)
+
                 Button("Start Experience") {
                     Task {
                         await openImmersiveSpace(id: "ImmersiveSpace")
@@ -26,6 +28,11 @@ struct ContentView: View {
                 }
                 .font(.title2)
             } else {
+                Image("Artboard 5@300x")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 320)
+
                 Text(status)
                     .foregroundColor(.gray)
                 

@@ -1,0 +1,178 @@
+<h2>3D Breadcrumb Trail — Konzept</h2>
+<p class="subtitle">Bevor ich Fragen stelle: stimmt dieses grundlegende Layout mit deiner Vorstellung überein?</p>
+
+<div class="section">
+  <h3>Ansicht von der Seite (Nutzer steht links)</h3>
+
+  <div class="mockup" style="padding: 32px 24px;">
+    <div class="mockup-header">Seitenansicht — Breadcrumb-Spur in Z-Tiefe</div>
+    <div class="mockup-body" style="background: #0a0a1a; padding: 40px 24px; overflow: hidden; position: relative; min-height: 200px;">
+
+      <!-- Z-axis arrow -->
+      <div style="position:absolute; bottom:16px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:4px; color:#555; font-size:11px;">
+        <span>← weiter weg (Z)</span>
+      </div>
+
+      <!-- Nutzer indicator -->
+      <div style="position:absolute; right:20px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; gap:4px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#2a6; display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div>
+        <span style="color:#2a6;font-size:10px;font-weight:bold;">Nutzer</span>
+      </div>
+
+      <!-- Panels in Z-depth (rendered left=far, right=close to user) -->
+      <div style="display:flex; align-items:center; justify-content:flex-end; gap:0; padding-right:80px;">
+
+        <!-- Oldest ancestor (furthest) -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin-right:28px; opacity:0.45;">
+          <div style="
+            width:64px; height:36px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius:8px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:9px; color:#aaa;
+            backdrop-filter: blur(4px);
+          ">Sport</div>
+          <span style="color:#555;font-size:9px;margin-top:4px;">Ebene 1</span>
+        </div>
+
+        <!-- Middle ancestor -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin-right:28px; opacity:0.65;">
+          <div style="
+            width:82px; height:44px;
+            background: linear-gradient(135deg, rgba(100,150,255,0.12), rgba(255,255,255,0.04));
+            border: 1px solid rgba(100,150,255,0.3);
+            border-radius:10px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:10px; color:#cce;
+          ">Fußball</div>
+          <span style="color:#555;font-size:9px;margin-top:4px;">Ebene 2</span>
+        </div>
+
+        <!-- Current parent (front, brightest) -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin-right:40px;">
+          <div style="
+            width:110px; height:56px;
+            background: linear-gradient(135deg, rgba(80,160,255,0.25), rgba(120,80,255,0.15));
+            border: 2px solid rgba(100,180,255,0.7);
+            border-radius:14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; color:#fff; font-weight:bold;
+            box-shadow: 0 0 20px rgba(80,160,255,0.4);
+          ">← Chevron  WM</div>
+          <span style="color:#5af;font-size:9px;margin-top:4px;font-weight:bold;">Aktueller Parent (vorne)</span>
+        </div>
+
+      </div>
+
+      <!-- Depth lines -->
+      <div style="position:absolute;bottom:32px;left:10%;right:85px;height:1px;background:linear-gradient(to right, transparent, #333, transparent);"></div>
+      <div style="position:absolute;bottom:32px;left:10%;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:8px solid #444;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Expandierter Zustand — Tap auf den vorderen Parent</h3>
+
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">Geschlossen (normal)</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:32px 24px; min-height:200px; display:flex; align-items:flex-end; justify-content:center;">
+        <div style="
+          padding: 14px 32px;
+          background: linear-gradient(135deg, rgba(80,160,255,0.2), rgba(120,80,255,0.1));
+          border: 2px solid rgba(100,180,255,0.6);
+          border-radius:14px;
+          color:#fff; font-weight:bold; font-size:13px;
+          box-shadow: 0 0 16px rgba(80,160,255,0.35);
+          display:flex; align-items:center; gap:10px;
+        ">
+          <span style="color:#aaf;">‹</span> WM
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Aufgeklappt — Tippen auf Parent</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:32px 24px; min-height:200px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:8px;">
+
+        <!-- Expanded ancestors listed below -->
+        <div style="
+          padding: 8px 24px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius:10px;
+          color:#aaa; font-size:11px; width:160px; text-align:center;
+          cursor:pointer;
+        ">Sport</div>
+        <div style="
+          padding: 8px 24px;
+          background: rgba(100,150,255,0.08);
+          border: 1px solid rgba(100,150,255,0.25);
+          border-radius:10px;
+          color:#ccf; font-size:12px; width:160px; text-align:center;
+          cursor:pointer;
+        ">Fußball</div>
+
+        <!-- Current front panel -->
+        <div style="
+          padding: 14px 32px;
+          background: linear-gradient(135deg, rgba(80,160,255,0.2), rgba(120,80,255,0.1));
+          border: 2px solid rgba(100,180,255,0.6);
+          border-radius:14px;
+          color:#fff; font-weight:bold; font-size:13px;
+          box-shadow: 0 0 16px rgba(80,160,255,0.35);
+          display:flex; align-items:center; gap:10px; width:160px; justify-content:center;
+        ">
+          <span style="color:#aaf;">‹</span> WM
+        </div>
+
+        <div style="color:#555; font-size:10px; margin-top:4px;">Tippen auf Ancestor → zurück navigieren</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Animation — "Von oben kommend"</h3>
+  <div class="mockup">
+    <div class="mockup-header">Neue Child-Panels kommen von oben (Y-Achse)</div>
+    <div class="mockup-body" style="background:#0a0a1a; padding:24px; display:flex; justify-content:center; gap:20px; align-items:flex-end; min-height:160px; position:relative; overflow:hidden;">
+
+      <!-- Panels flying in from top -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="color:#555;font-size:10px;">↓ von oben</div>
+        <div style="
+          padding:10px 20px; border-radius:10px;
+          background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.2);
+          color:#777; font-size:11px;
+        ">Kind A</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="color:#555;font-size:10px;">↓ von oben</div>
+        <div style="
+          padding:10px 20px; border-radius:10px;
+          background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.2);
+          color:#777; font-size:11px;
+        ">Kind B</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="color:#555;font-size:10px;">↓ von oben</div>
+        <div style="
+          padding:10px 20px; border-radius:10px;
+          background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.2);
+          color:#777; font-size:11px;
+        ">Kind C</div>
+      </div>
+
+      <!-- Parent going down -->
+      <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;color:#555;font-size:10px;">
+        <div style="padding:6px 18px;border-radius:8px;background:rgba(80,160,255,0.1);border:1px solid rgba(100,180,255,0.3);color:#88b;font-size:10px;">Parent → geht nach unten</div>
+        <span>↓</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px;">Passt dieses Layout zu deiner Vorstellung? Antworte im Terminal.</p>

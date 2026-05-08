@@ -1,0 +1,27 @@
+{"type":"server-started","port":51768,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51768","screen_dir":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content","state_dir":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/state"}
+{"type":"screen-added","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-concept.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-concept.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-concept.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-concept.html"}
+{"type":"screen-added","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-stack-v2.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-stack-v2.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-stack-v2.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/breadcrumb-stack-v2.html"}
+{"type":"screen-added","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/waiting-1.html"}
+{"type":"screen-added","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/stack-detail.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/stack-detail.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/stack-detail.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/stack-detail.html"}
+{"source":"user-event","type":"click","text":"B\n      \n        ‹ Name  ˅ (Chevron links + Pfeil unten)\n        Chevron links bleibt (Hierarchie-Hinweis), kleiner Pfeil rechts signalisiert \"aufklappbar nach unten\".","choice":"chevron-down","id":null,"timestamp":1778006852710}
+{"source":"user-event","type":"click","text":"A\n      \n        ⊞ Stack-Icon (square.stack.fill)\n        Zeigt visuell dass es ein Stapel ist — kein Chevron mehr. Klarer Hinweis auf \"aufklappbar\".","choice":"stack-icon","id":null,"timestamp":1778006854009}
+{"source":"user-event","type":"click","text":"B\n      \n        ‹ Name  ˅ (Chevron links + Pfeil unten)\n        Chevron links bleibt (Hierarchie-Hinweis), kleiner Pfeil rechts signalisiert \"aufklappbar nach unten\".","choice":"chevron-down","id":null,"timestamp":1778006855442}
+{"source":"user-event","type":"click","text":"A\n      \n        ⊞ Stack-Icon (square.stack.fill)\n        Zeigt visuell dass es ein Stapel ist — kein Chevron mehr. Klarer Hinweis auf \"aufklappbar\".","choice":"stack-icon","id":null,"timestamp":1778006856258}
+{"source":"user-event","type":"click","text":"B\n      \n        ‹ Name  ˅ (Chevron links + Pfeil unten)\n        Chevron links bleibt (Hierarchie-Hinweis), kleiner Pfeil rechts signalisiert \"aufklappbar nach unten\".","choice":"chevron-down","id":null,"timestamp":1778006861125}
+{"type":"screen-added","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/expand-nav.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/expand-nav.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/expand-nav.html"}
+{"type":"screen-updated","file":"/Users/paologrommes/Documents/BME/BME/BME-6/Projekt/ImmersiveRoom/.superpowers/brainstorm/40388-1778006270/content/expand-nav.html"}
+{"type":"server-stopped","reason":"idle timeout"}

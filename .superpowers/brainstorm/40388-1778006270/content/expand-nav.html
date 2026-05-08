@@ -1,0 +1,117 @@
+<h2>Aufklappen & Navigation</h2>
+<p class="subtitle">Tap-Verhalten der Breadcrumb-Karten</p>
+
+<div class="section">
+  <h3>Tap-Logik</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">State-Machine</div>
+    <div class="mockup-body" style="background:#0a0a1a; padding:28px; font-size:12px; line-height:1.9; color:#aaa;">
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px 20px;">
+
+        <div style="color:#5af; font-weight:bold;">Situation</div>
+        <div style="color:#5af; font-weight:bold;">Ergebnis</div>
+
+        <div style="color:#ccc;">Tap Frontkarte<br><span style="color:#555;font-size:10px;">(breadcrumbExpanded == false, pfad nicht leer)</span></div>
+        <div style="color:#8f8;">→ Stapel klappt nach unten auf<br><span style="color:#555;font-size:10px;">breadcrumbExpanded = true</span></div>
+
+        <div style="color:#ccc;">Tap Frontkarte<br><span style="color:#555;font-size:10px;">(breadcrumbExpanded == true)</span></div>
+        <div style="color:#fa8;">→ Stapel klappt wieder ein<br><span style="color:#555;font-size:10px;">breadcrumbExpanded = false</span></div>
+
+        <div style="color:#ccc;">Tap Ancestor-Karte<br><span style="color:#555;font-size:10px;">(im aufgeklappten Zustand)</span></div>
+        <div style="color:#8cf;">→ navigiert zurück zu genau dieser Ebene<br><span style="color:#555;font-size:10px;">zurueckZuAncestor(thema:) + collapse</span></div>
+
+        <div style="color:#ccc;">Tap Frontkarte<br><span style="color:#555;font-size:10px;">(pfad.isEmpty — keine Ancestors)</span></div>
+        <div style="color:#faa;">→ eine Ebene zurück (bisheriges Verhalten)<br><span style="color:#555;font-size:10px;">zurueckEineEbene() wie bisher</span></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Aufgeklappt — Positionen</h3>
+  <div class="split">
+
+    <div class="mockup">
+      <div class="mockup-header">Expanded (3 Ebenen tief)</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:10px; min-height:260px;">
+
+        <!-- Front card stays -->
+        <div style="
+          width:200px; padding:16px 0;
+          background: linear-gradient(135deg, #1a2a4a, #1e1840);
+          border: 2px solid rgba(100,180,255,0.7);
+          border-radius:14px;
+          text-align:center; color:#fff; font-weight:bold; font-size:13px;
+          box-shadow: 0 0 20px rgba(80,160,255,0.4);
+          display:flex; align-items:center; justify-content:center; gap:8px;
+        ">
+          <span style="color:#88c;">‹</span> WM <span style="color:#88c; font-size:11px;">˅</span>
+        </div>
+
+        <!-- Ancestor 1 -->
+        <div style="
+          width:182px; padding:14px 0;
+          background: #1c1c35;
+          border: 1.5px solid rgba(120,140,255,0.35);
+          border-radius:13px;
+          text-align:center; color:#aab; font-size:12px;
+          cursor:pointer;
+        ">Fußball</div>
+
+        <!-- Ancestor 2 -->
+        <div style="
+          width:168px; padding:14px 0;
+          background: #1a1a2e;
+          border: 1.5px solid rgba(255,255,255,0.22);
+          border-radius:12px;
+          text-align:center; color:#778; font-size:11px;
+          cursor:pointer;
+        ">Sport</div>
+
+        <div style="color:#444; font-size:10px; text-align:center; margin-top:4px;">Älteste Ebene unten — Tap navigiert zurück</div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Positionen (Meter)</div>
+      <div class="mockup-body" style="background:#0a0a1a; padding:24px; font-family:monospace; font-size:11px; color:#aaa; line-height:2;">
+        <div><span style="color:#5af;">fokusThema (bleibt)</span></div>
+        <div style="color:#777;">pos: (0, 0.80, -2.00)</div>
+        <br>
+        <div><span style="color:#88c;">pfad.last</span></div>
+        <div style="color:#777;">pos: (0, 0.28, -2.00)</div>
+        <div style="color:#555; font-size:10px;">Δy = –0.52m</div>
+        <br>
+        <div><span style="color:#668;">pfad[–2]</span></div>
+        <div style="color:#777;">pos: (0, –0.24, -2.00)</div>
+        <div style="color:#555; font-size:10px;">Δy = –0.52m</div>
+        <br>
+        <div style="color:#444; font-size:10px;">Alle auf gleichem Z wenn aufgeklappt</div>
+        <div style="color:#444; font-size:10px;">Animation: entity.move() 0.4s easeInOut</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>zurueckZuAncestor — Navigationslogik</h3>
+  <div class="mockup">
+    <div class="mockup-header">Pfad-Rekonstruktion beim Zurücknavigieren</div>
+    <div class="mockup-body" style="background:#0a0a1a; padding:24px; font-family:monospace; font-size:11px; color:#aaa; line-height:1.8;">
+      <div style="color:#666; margin-bottom:8px;">// Vollständiger Pfad = pfad + [fokusThema]</div>
+      <div><span style="color:#f90;">let</span> vollPfad = pfad + [fokusThema!]</div>
+      <div><span style="color:#f90;">let</span> idx = vollPfad.firstIndex { $0.id == target.id }!</div>
+      <br>
+      <div style="color:#666;">// Neuer Zustand:</div>
+      <div>pfad = Array(vollPfad[0..&lt;idx])   <span style="color:#555;">// alles vor dem Ziel</span></div>
+      <div>fokusThema = target</div>
+      <div>childrenThemen = <span style="color:#5af;">reload</span>(target.id)</div>
+      <div>aktuelleThemen = <span style="color:#5af;">reload</span>(target.parentId ?? rootId)</div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px;">Stimmt diese Logik? Antworte im Terminal.</p>
