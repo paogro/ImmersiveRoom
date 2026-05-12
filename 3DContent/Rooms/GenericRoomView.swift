@@ -91,14 +91,26 @@ struct GenericRoomView: View {
             }
 
             // === BREADCRUMB STACK ===
-            // Order: idx 0 = fokusThema (most recent, TOP), idx n-1 = oldest ancestor (BOTTOM)
+            // Collapsed: front card (current) at bottom of scene, ancestors peek behind in 3D depth.
+            // Expanded: vertical list — most recent at top, older ancestors below, home at bottom.
+            // idx 0 = fokusThema (most recent), idx n-1 = oldest ancestor.
             if let fokus = fokusThema {
                 let breadcrumbPfad: [Thema] = (pfad + [fokus]).reversed()
-                let nCards = breadcrumbPfad.count
 
-                let listSpacing: Float = 0.46
-                let listTopY: Float = 1.90
-                let listZ: Float = -1.80
+                // Collapsed: tight card-deck stack at mid-height. Front card fully readable;
+                // ancestors peek out by a few cm from the bottom edge (lower Y, slightly back in Z).
+                let collapsedFrontY: Float = 1.05
+                let collapsedFrontZ: Float = -1.70
+                let collapsedStepY: Float = -0.030
+                let collapsedStepZ: Float = 0.012
+
+                // Expanded: vertical list pulled into the user's direct forward view, vertically
+                // centered around eye level so the whole stack sits "in your face".
+                let expandedSpacing: Float = 0.30
+                let expandedCenterY: Float = 1.40
+                let expandedZ: Float = -1.55
+                let nExpandedTotal = breadcrumbPfad.count + 1 // +1 for home button at bottom
+                let expandedTopY = expandedCenterY + Float(nExpandedTotal - 1) * expandedSpacing / 2.0
 
                 for (idx, thema) in breadcrumbPfad.enumerated() {
                     let attachmentID = "crumb_\(thema.id.uuidString)"
@@ -108,32 +120,27 @@ struct GenericRoomView: View {
 
                         if panel.components[InputTargetComponent.self] == nil {
                             panel.components.set(InputTargetComponent(allowedInputTypes: .all))
-                            panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.35, 0.4, 0.05))]))
-                        }
-
-                        if panel.parent == nil {
-                            panel.position = SIMD3<Float>(0, 0.8, listZ)
-                            rootEntity.addChild(panel)
+                            panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.1, 0.32, 0.05))]))
                         }
 
                         let targetY: Float
                         let targetZ: Float
-                        let targetScale: Float
 
                         if breadcrumbExpanded {
-                            // idx 0 (fokus/most recent) at top, idx n-1 (oldest) at bottom — uniform spacing
-                            targetY     = listTopY - Float(idx) * listSpacing
-                            targetZ     = listZ - Float(idx) * 0.005
-                            targetScale = 1.0
+                            targetY = expandedTopY - Float(idx) * expandedSpacing
+                            targetZ = expandedZ
                         } else {
-                            // Collapsed: fokus (idx 0) visible; ancestors stacked just below
-                            targetY     = 0.80 - Float(idx) * 0.06
-                            targetZ     = -2.00 - Float(idx) * 0.02
-                            targetScale = 1.00 - Float(idx) * 0.04
+                            targetY = collapsedFrontY + Float(idx) * collapsedStepY
+                            targetZ = collapsedFrontZ - Float(idx) * collapsedStepZ
+                        }
+
+                        if panel.parent == nil {
+                            panel.position = SIMD3<Float>(0, targetY + 0.4, targetZ)
+                            rootEntity.addChild(panel)
                         }
 
                         let crumbTransform = Transform(
-                            scale: SIMD3<Float>(repeating: targetScale),
+                            scale: SIMD3<Float>(repeating: 1.0),
                             rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
                             translation: SIMD3<Float>(0, targetY, targetZ)
                         )
@@ -162,32 +169,31 @@ struct GenericRoomView: View {
 
                     var zielPosition: SIMD3<Float>
                     var zielScale: Float
+                    var zielRotation: simd_quatf
                     var animDuration: Double
 
                     if isRootLevel {
-                        // --- GALERIE: Flache Reihe mit Swipe ---
-                        let distanz = index - aktuellerIndex
-                        let xOffset = Float(distanz) * 1.1
-                        if distanz == 0 {
-                            zielPosition = SIMD3<Float>(0, 1.4, -2.0)
-                            zielScale = 1.2
-                        } else {
-                            let zOffset = abs(Float(distanz)) * 0.2
-                            zielPosition = SIMD3<Float>(xOffset, 1.4, -2.0 - zOffset)
-                            zielScale = max(0.6, 1.2 - (abs(Float(distanz)) * 0.25))
-                        }
+                        // --- KREIS: Karten ringförmig um den Nutzer auf Augenhöhe ---
+                        // 360° gleichmäßig auf alle Themen verteilt; aktuellerIndex sitzt
+                        // an der Frontposition (theta = 0). Swipe rotiert den Ring.
+                        // Karten stehen im Weltraum — Kopfbewegung bleibt vollständig frei.
+                        let nCards = max(sichtbareThemen.count, 1)
+                        let angleStep = 2 * Float.pi / Float(nCards)
+                        let radius: Float = 2.5
+                        let cardY: Float = 1.5
+
+                        let theta = (Float(index) - Float(aktuellerIndex)) * angleStep
+                        zielPosition = SIMD3<Float>(radius * sin(theta), cardY, -radius * cos(theta))
+                        zielScale = (index == aktuellerIndex) ? 1.2 : 1.0
+                        // Karte zur Mitte (Nutzer) drehen
+                        zielRotation = simd_quatf(angle: -theta, axis: [0, 1, 0])
                         animDuration = 0.5
 
-                    } else if breadcrumbExpanded {
-                        // Breadcrumb trail open: instantly move off-screen; opacity fade handled by SwiftUI
-                        zielPosition = SIMD3<Float>(xPos, -10, -2.5)
-                        zielScale = 1.0
-                        animDuration = 0.0
-
                     } else {
-                        // --- FOKUS: Children flach aufgereiht ---
-                        zielPosition = SIMD3<Float>(xPos, 1.5, -2.5)
+                        // --- FOKUS: Children flach aufgereiht (immer sichtbar) ---
+                        zielPosition = SIMD3<Float>(xPos, 1.55, -2.5)
                         zielScale = 1.0
+                        zielRotation = simd_quatf(angle: 0, axis: [0, 1, 0])
                         animDuration = 0.175
                     }
 
@@ -202,30 +208,32 @@ struct GenericRoomView: View {
 
                     let transform = Transform(
                         scale: SIMD3<Float>(repeating: zielScale),
-                        rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
+                        rotation: zielRotation,
                         translation: zielPosition
                     )
                     panel.move(to: transform, relativeTo: nil, duration: animDuration, timingFunction: .easeOut)
                 }
             }
 
-            // === ÜBERSICHT BUTTON ===
+            // === HOME BUTTON ===
+            // Root view: floats below the gallery.
+            // Focus view + expanded breadcrumb: sits at the very bottom of the vertical list.
+            // Focus view + collapsed: hidden off-screen.
             if let zuBtn = rootEntity.findEntity(named: "zurueck_btn") {
                 let btnTarget: SIMD3<Float>
                 if fokusThema == nil {
                     btnTarget = SIMD3<Float>(0, 1.1, -1.7)
                 } else if breadcrumbExpanded {
-                    let nCards = pfad.count + 1
-                    let listSpacing: Float = 0.46
-                    let listTopY: Float = 1.90
-                    let listZ: Float = -1.80
-                    // Home button sits one uniform step below the last (oldest) breadcrumb item
-                    let lastCardY = listTopY - Float(nCards - 1) * listSpacing
-                    btnTarget = SIMD3<Float>(0, lastCardY - listSpacing, listZ)
+                    let nExpandedTotal = pfad.count + 2 // breadcrumbs (fokus + ancestors) + home
+                    let expandedSpacing: Float = 0.30
+                    let expandedCenterY: Float = 1.40
+                    let expandedZ: Float = -1.55
+                    let bottomY = expandedCenterY - Float(nExpandedTotal - 1) * expandedSpacing / 2.0
+                    btnTarget = SIMD3<Float>(0, bottomY, expandedZ)
                 } else {
                     btnTarget = SIMD3<Float>(0, -10, -2)
                 }
-                zuBtn.move(to: Transform(translation: btnTarget), relativeTo: nil, duration: 0.35, timingFunction: .easeInOut)
+                zuBtn.move(to: Transform(translation: btnTarget), relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
             }
 
             rootEntity.scale = SIMD3<Float>(repeating: baumScale)
@@ -264,7 +272,7 @@ struct GenericRoomView: View {
             if fokusThema != nil && !leseModusAktiv {
                 ForEach(Array(childrenThemen.enumerated()), id: \.element.id) { index, thema in
                     Attachment(id: "child_\(thema.id.uuidString)") {
-                        themaPanel(thema: thema, isFront: false, animationDelay: 0.3 + Double(index) * 0.07, hideWhenExpanded: true)
+                        themaPanel(thema: thema, isFront: false, isActiveChild: true, animationDelay: 0.3 + Double(index) * 0.07, hideWhenExpanded: true)
                     }
                 }
             }
@@ -293,7 +301,13 @@ struct GenericRoomView: View {
                 if name.hasPrefix("lese_") {
                     leseModusAktiv = false
                     leseThema = nil
-                    animierePanels()
+                    // Closing the detail overlay is NOT a navigation event — the underlying
+                    // panels never went anywhere, they were just hidden behind the overlay.
+                    // Don't call animierePanels(); that would tear down and remount every
+                    // panel, re-triggering their initial-offset slide-in. Instead, just
+                    // remove the orphaned lese entity so it leaves the scene cleanly.
+                    let staleLese = rootEntity.children.filter { $0.name.hasPrefix("lese_") }
+                    staleLese.forEach { $0.removeFromParent() }
                     return
                 }
 
@@ -301,12 +315,17 @@ struct GenericRoomView: View {
                     let uuidString = String(name.dropFirst("crumb_".count))
                     let isFront = fokusThema?.id.uuidString == uuidString
                     if isFront {
-                        if pfad.isEmpty {
+                        // Tap front card = toggle expand/collapse.
+                        // No ancestors? Then collapse means "go up one level" (root).
+                        if pfad.isEmpty && !breadcrumbExpanded {
                             Task { await zurueckEineEbene() }
                         } else {
-                            breadcrumbExpanded.toggle()
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                breadcrumbExpanded.toggle()
+                            }
                         }
                     } else {
+                        // Tap an ancestor (only readable when expanded) = navigate to that level.
                         if let ancestor = pfad.first(where: { $0.id.uuidString == uuidString }) {
                             Task { await zurueckZuAncestor(thema: ancestor) }
                         }
@@ -339,18 +358,20 @@ struct GenericRoomView: View {
             }
     }
 
-    // Swipe nur in der Galerie (Root)
+    // Swipe nur in der Galerie (Root) — rotiert den Ring zyklisch
     private var swipeGesture: some Gesture {
         DragGesture(minimumDistance: 10)
             .targetedToAnyEntity()
             .onEnded { value in
                 guard isRootLevel else { return }
+                let count = aktuelleThemen.count
+                guard count > 0 else { return }
                 let translation = value.translation3D
                 if abs(translation.x) > 0.02 {
                     if translation.x < 0 {
-                        withAnimation { aktuellerIndex = min(aktuelleThemen.count - 1, aktuellerIndex + 1) }
+                        withAnimation { aktuellerIndex = (aktuellerIndex + 1) % count }
                     } else {
-                        withAnimation { aktuellerIndex = max(0, aktuellerIndex - 1) }
+                        withAnimation { aktuellerIndex = (aktuellerIndex - 1 + count) % count }
                     }
                 }
             }
@@ -436,31 +457,44 @@ struct GenericRoomView: View {
     // MARK: - Panel Views
 
     @ViewBuilder
-    private func themaPanel(thema: Thema, isFront: Bool, animationDelay: Double = 0, hideWhenExpanded: Bool = false) -> some View {
+    private func themaPanel(thema: Thema, isFront: Bool, isActiveChild: Bool = false, animationDelay: Double = 0, hideWhenExpanded: Bool = false) -> some View {
         let isGehalten = aktivGehaltenesPanel == "thema_\(thema.id.uuidString)"
                       || aktivGehaltenesPanel == "child_\(thema.id.uuidString)"
         let childHidden = hideWhenExpanded && breadcrumbExpanded
 
         Text(thema.name)
-            .font(.extraLargeTitle)
-            .fontWeight(isFront ? .bold : .semibold)
+            .font(isActiveChild ? .system(size: 54, weight: .bold) : .extraLargeTitle)
+            .fontWeight(isActiveChild ? .bold : (isFront ? .bold : .semibold))
             .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.9), radius: 4, x: 0, y: 1)
             .multilineTextAlignment(.center)
-            .frame(minWidth: 260)
-            .padding(.horizontal, 48)
-            .padding(.vertical, 32)
+            .frame(minWidth: isActiveChild ? 300 : 260)
+            .padding(.horizontal, isActiveChild ? 56 : 48)
+            .padding(.vertical, isActiveChild ? 40 : 32)
             .background {
                 ZStack {
+                    // Solid dark base guarantees readability on any 3D background
                     RoundedRectangle(cornerRadius: 28)
-                        .fill(.black.opacity(0.35))
+                        .fill(.black.opacity(isActiveChild ? 0.78 : 0.68))
 
                     RoundedRectangle(cornerRadius: 28)
-                        .fill(.ultraThinMaterial)
+                        .fill(.ultraThinMaterial.opacity(0.5))
 
-                    if isFront {
+                    if isActiveChild {
                         RoundedRectangle(cornerRadius: 28)
                             .fill(LinearGradient(
-                                colors: [.white.opacity(0.2), .blue.opacity(0.05), .clear],
+                                colors: [.white.opacity(0.18), .cyan.opacity(0.10), .clear],
+                                startPoint: .top, endPoint: .bottom
+                            ))
+                        RoundedRectangle(cornerRadius: 28)
+                            .stroke(LinearGradient(
+                                colors: [.white.opacity(0.95), .cyan.opacity(0.65), .white.opacity(0.55)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ), lineWidth: 2.5)
+                    } else if isFront {
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(LinearGradient(
+                                colors: [.white.opacity(0.15), .blue.opacity(0.05), .clear],
                                 startPoint: .top, endPoint: .bottom
                             ))
                         RoundedRectangle(cornerRadius: 28)
@@ -471,7 +505,7 @@ struct GenericRoomView: View {
                     } else {
                         RoundedRectangle(cornerRadius: 28)
                             .fill(LinearGradient(
-                                stops: [.init(color: .white.opacity(0.1), location: 0), .init(color: .clear, location: 0.4)],
+                                stops: [.init(color: .white.opacity(0.08), location: 0), .init(color: .clear, location: 0.4)],
                                 startPoint: .top, endPoint: .bottom
                             ))
                         RoundedRectangle(cornerRadius: 28)
@@ -493,9 +527,9 @@ struct GenericRoomView: View {
                 }
             }
             .shadow(
-                color: isGehalten ? .cyan.opacity(0.7) : (isFront ? .blue.opacity(0.4) : .black.opacity(0.4)),
-                radius: isGehalten ? 40 : (isFront ? 30 : 15),
-                y: isFront ? 12 : 6
+                color: isGehalten ? .cyan.opacity(0.7) : (isActiveChild ? .cyan.opacity(0.55) : (isFront ? .blue.opacity(0.4) : .black.opacity(0.4))),
+                radius: isGehalten ? 40 : (isActiveChild ? 38 : (isFront ? 30 : 15)),
+                y: isActiveChild || isFront ? 12 : 6
             )
             .hoverEffect(.highlight)
             .scaleEffect((panelsEingeblendet ? 1.0 : 0.7) * (isGehalten ? 1.06 : 1.0))
@@ -507,42 +541,40 @@ struct GenericRoomView: View {
 
     @ViewBuilder
     private func crumbPanel(thema: Thema, isFront: Bool) -> some View {
+        let textVisible = isFront || breadcrumbExpanded
         HStack(spacing: 14) {
             Image(systemName: "chevron.left")
                 .font(.title2).fontWeight(.medium)
-                .foregroundColor(.white.opacity(0.7))
-                .opacity(isFront || breadcrumbExpanded ? 1 : 0)
+                .foregroundColor(.white.opacity(0.75))
+                .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
+                .opacity(textVisible ? 1 : 0)
             Text(thema.name)
-                .font(.extraLargeTitle).fontWeight(.bold).foregroundStyle(.white)
-                .opacity(isFront || breadcrumbExpanded ? 1 : 0)
+                .font(.title).fontWeight(.semibold)
+                .foregroundStyle(.white.opacity(0.85))
+                .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
+                .opacity(textVisible ? 1 : 0)
         }
-        .padding(.horizontal, 48)
-        .padding(.vertical, 28)
+        .animation(.easeInOut(duration: 0.3), value: textVisible)
+        .padding(.horizontal, 40)
+        .padding(.vertical, 22)
         .background {
             ZStack {
-                RoundedRectangle(cornerRadius: 32).fill(.black.opacity(0.3))
-                RoundedRectangle(cornerRadius: 32).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 32).fill(LinearGradient(
+                RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.72))
+                RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial.opacity(0.4))
+                RoundedRectangle(cornerRadius: 28).fill(LinearGradient(
                     stops: [
-                        .init(color: isFront ? .blue.opacity(0.2) : .white.opacity(0.08), location: 0),
-                        .init(color: isFront ? .purple.opacity(0.08) : .clear, location: 0.5),
-                        .init(color: .clear, location: 1.0)
+                        .init(color: .white.opacity(0.08), location: 0),
+                        .init(color: .clear, location: 0.6)
                     ],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 ))
-                RoundedRectangle(cornerRadius: 32).stroke(
-                    LinearGradient(
-                        colors: isFront
-                            ? [.white.opacity(0.6), .blue.opacity(0.3), .white.opacity(0.4)]
-                            : [.white.opacity(0.3), .white.opacity(0.1), .white.opacity(0.2)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ),
-                    lineWidth: isFront ? 1.5 : 1.0
+                RoundedRectangle(cornerRadius: 28).stroke(
+                    .white.opacity(0.35),
+                    lineWidth: 1.2
                 )
             }
         }
-        .shadow(color: isFront ? .blue.opacity(0.3) : .black.opacity(0.2),
-                radius: isFront ? 25 : 10, y: 10)
+        .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
         .hoverEffect(.highlight)
         .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
         .opacity(panelsEingeblendet ? 1.0 : 0.0)
@@ -637,31 +669,28 @@ struct GenericRoomView: View {
             Image("Artboard 5@300x")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 80)
-                .padding(.horizontal, 48)
+                .frame(height: 78)
+                .opacity(0.82)
+                .padding(.horizontal, 44)
                 .padding(.vertical, 10)
                 .background {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 32).fill(.black.opacity(0.3))
-                        RoundedRectangle(cornerRadius: 32).fill(.ultraThinMaterial)
-                        RoundedRectangle(cornerRadius: 32).fill(LinearGradient(
+                        RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.72))
+                        RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial.opacity(0.4))
+                        RoundedRectangle(cornerRadius: 28).fill(LinearGradient(
                             stops: [
                                 .init(color: .white.opacity(0.08), location: 0),
-                                .init(color: .clear, location: 0.5),
-                                .init(color: .clear, location: 1.0)
+                                .init(color: .clear, location: 0.6)
                             ],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         ))
-                        RoundedRectangle(cornerRadius: 32).stroke(
-                            LinearGradient(
-                                colors: [.white.opacity(0.3), .white.opacity(0.1), .white.opacity(0.2)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.0
+                        RoundedRectangle(cornerRadius: 28).stroke(
+                            .white.opacity(0.35),
+                            lineWidth: 1.2
                         )
                     }
                 }
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 10)
+                .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
         }
         .buttonStyle(.plain)
         .hoverEffect(.highlight)
@@ -672,15 +701,41 @@ struct GenericRoomView: View {
 
     // MARK: - Animation
 
-    private func animierePanels() {
-        // Collect first to avoid mutating the collection during iteration
-        let stale = rootEntity.children.filter {
-            $0.name.hasPrefix("crumb_") || $0.name.hasPrefix("child_") || $0.name.hasPrefix("thema_")
+    private func animierePanels(skipBounce: Bool = false) {
+        // Only remove entities that no longer belong in the new state. Persisting entities
+        // stay parented so they don't re-mount and re-trigger their initial-offset move(to:),
+        // which would double up on the move triggered by the state change itself.
+        let validCrumb: Set<String>
+        let validChild: Set<String>
+        let validThema: Set<String>
+        if let fokus = fokusThema {
+            validCrumb = Set((pfad + [fokus]).map { "crumb_\($0.id.uuidString)" })
+            validChild = Set(childrenThemen.map { "child_\($0.id.uuidString)" })
+            validThema = []
+        } else {
+            validCrumb = []
+            validChild = []
+            validThema = Set(aktuelleThemen.map { "thema_\($0.id.uuidString)" })
+        }
+
+        let stale = rootEntity.children.filter { entity in
+            if entity.name.hasPrefix("crumb_") { return !validCrumb.contains(entity.name) }
+            if entity.name.hasPrefix("child_") { return !validChild.contains(entity.name) }
+            if entity.name.hasPrefix("thema_") { return !validThema.contains(entity.name) }
+            return false
         }
         stale.forEach { $0.removeFromParent() }
-        panelsEingeblendet = false
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.1)) {
+
+        if skipBounce {
+            // Back-navigation: only the RealityView move(to:) translation should animate
+            // (fokus drops into stack, children slide in from below). Skip the
+            // panelsEingeblendet opacity+scale spring so it doesn't double up.
             panelsEingeblendet = true
+        } else {
+            panelsEingeblendet = false
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.1)) {
+                panelsEingeblendet = true
+            }
         }
     }
 
@@ -777,7 +832,7 @@ struct GenericRoomView: View {
             aktuellerIndex = 0
             status = "\(aktuelleThemen.count) Themen"
         }
-        animierePanels()
+        animierePanels(skipBounce: true)
     }
 
     private func zurueckZuAncestor(thema: Thema) async {
@@ -801,6 +856,6 @@ struct GenericRoomView: View {
             status = "Fehler: \(error.localizedDescription)"
         }
 
-        animierePanels()
+        animierePanels(skipBounce: true)
     }
 }
