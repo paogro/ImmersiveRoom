@@ -30,8 +30,21 @@ struct GenericRoomView: View {
     @State private var navigiertTiefer: Bool = true
 
     @State private var rootEntity: Entity = Entity()
+    @State private var ringEntity: Entity = Entity()        // holds the topic-card ring; rotating it spins the whole ring
+
+    @State private var ringAngle: Float = 0                 // current rotation of the ring (radians)
+    @State private var ringDragActive: Bool = false
+    @State private var ringDragStartAngle: Float = 0
+    @State private var ringDragLastX: Float = 0             // last sampled horizontal drag offset (m), for velocity
+    @State private var ringDragLastTime: Date = Date()
+    @State private var ringVelocity: Float = 0             // smoothed angular velocity at release (rad/s)
+    @State private var ringInteracting: Bool = false        // suppresses update-closure rotation while drag/momentum drives ringEntity directly
+    @State private var momentumTask: Task<Void, Never>? = nil
 
     private let themenService = ThemenService()
+    private let ringDragSensitivity: Float = 0.25          // radians of ring rotation per metre of horizontal drag (tunable)
+    private let ringMomentumDamping: Float = 0.5           // velocity multiplier per ~16ms tick during glide
+    private let ringMomentumMinSpeed: Float = 3.5          // rad/s below which momentum gives up and snaps
 
     private var isRootLevel: Bool {
         fokusThema == nil
@@ -61,6 +74,12 @@ struct GenericRoomView: View {
 
             rootEntity.position = .zero
             content.add(rootEntity)
+
+            ringEntity.name = "ring"
+            ringEntity.transform.rotation = simd_quatf(angle: ringAngle, axis: [0, 1, 0])
+            rootEntity.addChild(ringEntity)
+
+            RingPanelMarker.registerComponent()
 
             if let debug = attachments.entity(for: "debug") {
                 debug.position = SIMD3<Float>(0, 2.2, -2)
@@ -150,6 +169,15 @@ struct GenericRoomView: View {
             }
 
             // === POSITIONIERUNG DER THEMEN ===
+            // Karten sitzen statisch auf einem Kreis im LOKALEN Raum von ringEntity.
+            // Drehen wir ringEntity um Y, rotieren alle Karten als geschlossener Ring mit —
+            // wie ein Zahnrad. Frontposition in der Welt ist die Karte, deren lokaler Winkel
+            // gerade ringAngle entspricht; ihr Index wird in aktuellerIndex gehalten.
+            let nCardsLayout = max(sichtbareThemen.count, 1)
+            let angleStepLayout: Float = 2 * Float.pi / Float(nCardsLayout)
+            let radiusLayout: Float = 2.5
+            let cardYLayout: Float = 1.5
+
             for (index, thema) in sichtbareThemen.enumerated() {
                 let attachmentID = fokusThema != nil
                     ? "child_\(thema.id.uuidString)"
@@ -161,58 +189,57 @@ struct GenericRoomView: View {
                     if panel.components[InputTargetComponent.self] == nil {
                         panel.components.set(InputTargetComponent(allowedInputTypes: .all))
                         panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.95, 0.35, 0.05))]))
+                        // Required for the SwiftUI .hoverEffect inside the attachment to receive
+                        // gaze state — without it, topic cards in the room get no hover feedback.
+                        panel.components.set(HoverEffectComponent())
                     }
 
-                    let gesamtBreite = Float(sichtbareThemen.count - 1) * 1.1
-                    let startX = -gesamtBreite / 2.0
-                    let xPos = startX + Float(index) * 1.1
+                    let theta = Float(index) * angleStepLayout
+                    let zielPosition = SIMD3<Float>(radiusLayout * sin(theta), cardYLayout, -radiusLayout * cos(theta))
+                    let zielRotation = simd_quatf(angle: -theta, axis: [0, 1, 0])
+                    // Im Root-Carousel bekommt KEINE Karte mehr eine positionsabhängige
+                    // Hervorhebung — der Blick (Gaze-Hover) bestimmt allein, welche Karte
+                    // aufleuchtet. Children behalten ihr eigenes Styling.
+                    let isFront = false
+                    let zielScale: Float = 1.0
 
-                    var zielPosition: SIMD3<Float>
-                    var zielScale: Float
-                    var zielRotation: simd_quatf
-                    var animDuration: Double
-
-                    if isRootLevel {
-                        // --- KREIS: Karten ringförmig um den Nutzer auf Augenhöhe ---
-                        // 360° gleichmäßig auf alle Themen verteilt; aktuellerIndex sitzt
-                        // an der Frontposition (theta = 0). Swipe rotiert den Ring.
-                        // Karten stehen im Weltraum — Kopfbewegung bleibt vollständig frei.
-                        let nCards = max(sichtbareThemen.count, 1)
-                        let angleStep = 2 * Float.pi / Float(nCards)
-                        let radius: Float = 2.5
-                        let cardY: Float = 1.5
-
-                        let theta = (Float(index) - Float(aktuellerIndex)) * angleStep
-                        zielPosition = SIMD3<Float>(radius * sin(theta), cardY, -radius * cos(theta))
-                        zielScale = (index == aktuellerIndex) ? 1.2 : 1.0
-                        // Karte zur Mitte (Nutzer) drehen
-                        zielRotation = simd_quatf(angle: -theta, axis: [0, 1, 0])
-                        animDuration = 0.5
-
-                    } else {
-                        // --- FOKUS: Children flach aufgereiht (immer sichtbar) ---
-                        zielPosition = SIMD3<Float>(xPos, 1.55, -2.5)
-                        zielScale = 1.0
-                        zielRotation = simd_quatf(angle: 0, axis: [0, 1, 0])
-                        animDuration = 0.175
-                    }
-
-                    if panel.parent == nil {
-                        if !isRootLevel {
-                            // Fly in from above when going deeper, from below when going back up
-                            let yOffset: Float = navigiertTiefer ? 1.5 : -1.5
-                            panel.position = SIMD3<Float>(zielPosition.x, zielPosition.y + yOffset, zielPosition.z)
-                        }
-                        rootEntity.addChild(panel)
-                    }
-
-                    let transform = Transform(
+                    let prevMarker = panel.components[RingPanelMarker.self]
+                    let zielTransform = Transform(
                         scale: SIMD3<Float>(repeating: zielScale),
                         rotation: zielRotation,
                         translation: zielPosition
                     )
-                    panel.move(to: transform, relativeTo: nil, duration: animDuration, timingFunction: .easeOut)
+
+                    if panel.parent == nil {
+                        // Fly-in: focus levels drop in vertically; root cards just pop via the
+                        // SwiftUI panelsEingeblendet scale spring.
+                        if !isRootLevel {
+                            let yOffset: Float = navigiertTiefer ? 1.5 : -1.5
+                            panel.transform = Transform(
+                                scale: SIMD3<Float>(repeating: zielScale),
+                                rotation: zielRotation,
+                                translation: SIMD3<Float>(zielPosition.x, zielPosition.y + yOffset, zielPosition.z)
+                            )
+                        } else {
+                            panel.transform = zielTransform
+                        }
+                        ringEntity.addChild(panel)
+                        let dur: Double = isRootLevel ? 0.5 : 0.175
+                        panel.move(to: zielTransform, relativeTo: ringEntity, duration: dur, timingFunction: .easeOut)
+                        panel.components.set(RingPanelMarker(isFront: isFront))
+                    } else if prevMarker?.isFront != isFront {
+                        // Only the front-highlight scale changed — animate just that.
+                        panel.move(to: zielTransform, relativeTo: ringEntity, duration: 0.25, timingFunction: .easeOut)
+                        panel.components.set(RingPanelMarker(isFront: isFront))
+                    }
                 }
+            }
+
+            // Ring rotation is driven imperatively during drag/momentum (see swipeGesture /
+            // momentum task); the update closure only mirrors the settled ringAngle when no
+            // interaction is in flight so unrelated state changes don't snap the ring back.
+            if !ringInteracting {
+                ringEntity.transform.rotation = simd_quatf(angle: ringAngle, axis: [0, 1, 0])
             }
 
             // === HOME BUTTON ===
@@ -263,8 +290,9 @@ struct GenericRoomView: View {
             if fokusThema == nil && !leseModusAktiv {
                 ForEach(aktuelleThemen) { thema in
                     Attachment(id: "thema_\(thema.id.uuidString)") {
-                        let isFront = aktuelleThemen.firstIndex(where: { $0.id == thema.id }) == aktuellerIndex
-                        themaPanel(thema: thema, isFront: isFront)
+                        // Root-Karten haben keine positionsabhängige Hervorhebung mehr —
+                        // der Gaze-Hover (.roundedGazeHover unten) übernimmt das Highlight.
+                        themaPanel(thema: thema, isFront: false)
                     }
                 }
             }
@@ -334,16 +362,14 @@ struct GenericRoomView: View {
                 }
 
                 if name.hasPrefix("thema_") {
+                    // Tap = direkte Auswahl. Egal wo die Karte gerade im Kreis steht,
+                    // der Tap betrifft genau die Karte, die der Nutzer angeschaut hat.
+                    // Kein Re-Center, kein Snap-to-front — sonst stimmt die Auswahl
+                    // nicht mit dem überein, was der Nutzer angetippt hat.
                     let uuidString = String(name.dropFirst("thema_".count))
-                    if let tappedIndex = aktuelleThemen.firstIndex(where: { $0.id.uuidString == uuidString }) {
-                        if tappedIndex == aktuellerIndex {
-                            // Vorderstes Thema → Fokus-Modus
-                            let thema = aktuelleThemen[tappedIndex]
-                            Task { await themaAusgewaehlt(thema: thema) }
-                        } else {
-                            // Seitliches Thema → nach vorne holen
-                            withAnimation { aktuellerIndex = tappedIndex }
-                        }
+                    if let thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString }) {
+                        stopMomentum()
+                        Task { await themaAusgewaehlt(thema: thema) }
                     }
                     return
                 }
@@ -358,23 +384,180 @@ struct GenericRoomView: View {
             }
     }
 
-    // Swipe nur in der Galerie (Root) — rotiert den Ring zyklisch
+    // Swipe rotiert den ganzen Ring wie ein Zahnrad — funktioniert sowohl im
+    // Root- als auch im Fokus-Level, weil beide jetzt dieselbe Kreis-Anordnung
+    // benutzen. Während der Geste wird ringEntity.transform.rotation direkt
+    // gesetzt; @State (ringAngle) wird erst nach dem Snap committed.
     private var swipeGesture: some Gesture {
         DragGesture(minimumDistance: 10)
             .targetedToAnyEntity()
-            .onEnded { value in
-                guard isRootLevel else { return }
-                let count = aktuelleThemen.count
+            .onChanged { value in
+                let count = sichtbareThemen.count
                 guard count > 0 else { return }
-                let translation = value.translation3D
-                if abs(translation.x) > 0.02 {
-                    if translation.x < 0 {
-                        withAnimation { aktuellerIndex = (aktuellerIndex + 1) % count }
-                    } else {
-                        withAnimation { aktuellerIndex = (aktuellerIndex - 1 + count) % count }
-                    }
+                let tx = Float(value.translation3D.x)
+                let now = Date()
+
+                if !ringDragActive {
+                    stopMomentum()
+                    ringDragActive = true
+                    ringInteracting = true
+                    ringDragStartAngle = ringAngle
+                    ringDragLastX = tx
+                    ringDragLastTime = now
+                    ringVelocity = 0
                 }
+
+                // Drag-Konvention: nach rechts ziehen (positive x) holt die
+                // vorherige Karte nach vorn — die Karten folgen also der Hand.
+                // Ringrotation um +Y verschiebt Karten zur -X-Seite, deshalb
+                // negieren wir tx.
+                let newAngle = ringDragStartAngle - tx * ringDragSensitivity
+                ringEntity.transform.rotation = simd_quatf(angle: newAngle, axis: [0, 1, 0])
+                ringAngle = newAngle
+
+                let dt = max(Float(now.timeIntervalSince(ringDragLastTime)), 0.001)
+                let dx = tx - ringDragLastX
+                let omega = -dx * ringDragSensitivity / dt
+                // Geglättete Winkelgeschwindigkeit für den Impulsschwung
+                ringVelocity = ringVelocity * 0.55 + omega * 0.45
+                ringDragLastX = tx
+                ringDragLastTime = now
+
+                aktualisiereFrontIndex()
             }
+            .onEnded { _ in
+                guard ringDragActive else { return }
+                ringDragActive = false
+                let count = sichtbareThemen.count
+                guard count > 0 else {
+                    ringInteracting = false
+                    return
+                }
+                // Geschwindigkeit clampen, sonst kann ein Ruckler den Ring
+                // unkontrolliert schleudern.
+                let maxSpeed: Float = 14.0
+                ringVelocity = max(-maxSpeed, min(maxSpeed, ringVelocity))
+                starteMomentum()
+            }
+    }
+
+    // Aktualisiert aktuellerIndex auf die Karte, die der Frontposition (Weltwinkel 0)
+    // gerade am nächsten ist. Karte i sitzt im Ringraum bei θ_i = i*step; nach Rotation
+    // um α ist ihr Weltwinkel θ_i - α, also frontIdx ≈ round(α / step) mod n.
+    private func aktualisiereFrontIndex() {
+        let count = sichtbareThemen.count
+        guard count > 0 else { return }
+        let step: Float = 2 * Float.pi / Float(count)
+        var idx = Int((ringAngle / step).rounded())
+        idx = ((idx % count) + count) % count
+        if idx != aktuellerIndex {
+            aktuellerIndex = idx
+        }
+    }
+
+    private func stopMomentum() {
+        momentumTask?.cancel()
+        momentumTask = nil
+        ringInteracting = false
+    }
+
+    private func starteMomentum() {
+        let count = sichtbareThemen.count
+        guard count > 0 else {
+            ringInteracting = false
+            return
+        }
+        momentumTask?.cancel()
+        ringInteracting = true
+
+        momentumTask = Task { @MainActor in
+            let step: Float = 2 * Float.pi / Float(count)
+            let frameSec: Float = 1.0 / 60.0
+            let frameNs: UInt64 = 16_000_000
+
+            // Snap-Ziel wird im Moment des Loslassens festgenagelt: diejenige Karte,
+            // die genau jetzt der Frontmitte am nächsten ist. Damit landet der Ring
+            // garantiert auf der Karte, die der Nutzer beim Release sieht — selbst
+            // wenn der kurze Nachlauf (Glide) sonst auf eine andere Karte rutschen
+            // würde. Off-by-one durch späte Neuberechnung ist damit ausgeschlossen.
+            let releaseAngle = ringAngle
+            let releaseTargetIdx = Int((releaseAngle / step).rounded())
+            let snapTarget = Float(releaseTargetIdx) * step
+
+            // Glide-Phase: Geschwindigkeit klingt exponentiell ab.
+            while !Task.isCancelled && abs(ringVelocity) > ringMomentumMinSpeed {
+                let newAngle = ringAngle + ringVelocity * frameSec
+                ringAngle = newAngle
+                ringEntity.transform.rotation = simd_quatf(angle: newAngle, axis: [0, 1, 0])
+                ringVelocity *= ringMomentumDamping
+                aktualisiereFrontIndex()
+                try? await Task.sleep(nanoseconds: frameNs)
+            }
+            if Task.isCancelled { return }
+
+            // Snap-Phase: weich auf die beim Loslassen gemerkte Karte einrasten.
+            let startAngle = ringAngle
+            let diff = snapTarget - startAngle
+            let snapDuration: Float = 0.35
+            let steps = max(1, Int(snapDuration / frameSec))
+            for i in 1...steps {
+                if Task.isCancelled { return }
+                let t = Float(i) / Float(steps)
+                let eased = 1 - pow(1 - t, 3)
+                let a = startAngle + diff * eased
+                ringAngle = a
+                ringEntity.transform.rotation = simd_quatf(angle: a, axis: [0, 1, 0])
+                try? await Task.sleep(nanoseconds: frameNs)
+            }
+            if Task.isCancelled { return }
+
+            ringAngle = snapTarget
+            ringEntity.transform.rotation = simd_quatf(angle: snapTarget, axis: [0, 1, 0])
+            ringVelocity = 0
+            aktualisiereFrontIndex()
+            ringInteracting = false
+            momentumTask = nil
+        }
+    }
+
+    // Tap auf eine seitliche Karte (Root) — Ring weich auf diesen Index drehen,
+    // statt direkt aktuellerIndex zu setzen. Wählt die kürzeste Bogenrichtung.
+    private func rotiereZuIndex(_ index: Int) {
+        let count = sichtbareThemen.count
+        guard count > 0 else { return }
+        momentumTask?.cancel()
+        ringInteracting = true
+
+        let step: Float = 2 * Float.pi / Float(count)
+        var target = Float(index) * step
+        var diff = target - ringAngle
+        let twoPi: Float = 2 * Float.pi
+        while diff > Float.pi { target -= twoPi; diff = target - ringAngle }
+        while diff < -Float.pi { target += twoPi; diff = target - ringAngle }
+        let startAngle = ringAngle
+
+        momentumTask = Task { @MainActor in
+            let frameSec: Float = 1.0 / 60.0
+            let frameNs: UInt64 = 16_000_000
+            let dur: Float = 0.45
+            let steps = max(1, Int(dur / frameSec))
+            for i in 1...steps {
+                if Task.isCancelled { return }
+                let t = Float(i) / Float(steps)
+                let eased = 1 - pow(1 - t, 3)
+                let a = startAngle + diff * eased
+                ringAngle = a
+                ringEntity.transform.rotation = simd_quatf(angle: a, axis: [0, 1, 0])
+                aktualisiereFrontIndex()
+                try? await Task.sleep(nanoseconds: frameNs)
+            }
+            if Task.isCancelled { return }
+            ringAngle = target
+            ringEntity.transform.rotation = simd_quatf(angle: target, axis: [0, 1, 0])
+            aktuellerIndex = ((index % count) + count) % count
+            ringInteracting = false
+            momentumTask = nil
+        }
     }
 
     private var holdGesture: some Gesture {
@@ -462,81 +645,17 @@ struct GenericRoomView: View {
                       || aktivGehaltenesPanel == "child_\(thema.id.uuidString)"
         let childHidden = hideWhenExpanded && breadcrumbExpanded
 
-        Text(thema.name)
-            .font(isActiveChild ? .system(size: 54, weight: .bold) : .extraLargeTitle)
-            .fontWeight(isActiveChild ? .bold : (isFront ? .bold : .semibold))
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.9), radius: 4, x: 0, y: 1)
-            .multilineTextAlignment(.center)
-            .frame(minWidth: isActiveChild ? 300 : 260)
-            .padding(.horizontal, isActiveChild ? 56 : 48)
-            .padding(.vertical, isActiveChild ? 40 : 32)
-            .background {
-                ZStack {
-                    // Solid dark base guarantees readability on any 3D background
-                    RoundedRectangle(cornerRadius: 28)
-                        .fill(.black.opacity(isActiveChild ? 0.78 : 0.68))
-
-                    RoundedRectangle(cornerRadius: 28)
-                        .fill(.ultraThinMaterial.opacity(0.5))
-
-                    if isActiveChild {
-                        RoundedRectangle(cornerRadius: 28)
-                            .fill(LinearGradient(
-                                colors: [.white.opacity(0.18), .cyan.opacity(0.10), .clear],
-                                startPoint: .top, endPoint: .bottom
-                            ))
-                        RoundedRectangle(cornerRadius: 28)
-                            .stroke(LinearGradient(
-                                colors: [.white.opacity(0.95), .cyan.opacity(0.65), .white.opacity(0.55)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ), lineWidth: 2.5)
-                    } else if isFront {
-                        RoundedRectangle(cornerRadius: 28)
-                            .fill(LinearGradient(
-                                colors: [.white.opacity(0.15), .blue.opacity(0.05), .clear],
-                                startPoint: .top, endPoint: .bottom
-                            ))
-                        RoundedRectangle(cornerRadius: 28)
-                            .stroke(LinearGradient(
-                                colors: [.white.opacity(0.7), .blue.opacity(0.3), .white.opacity(0.3)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ), lineWidth: 2.0)
-                    } else {
-                        RoundedRectangle(cornerRadius: 28)
-                            .fill(LinearGradient(
-                                stops: [.init(color: .white.opacity(0.08), location: 0), .init(color: .clear, location: 0.4)],
-                                startPoint: .top, endPoint: .bottom
-                            ))
-                        RoundedRectangle(cornerRadius: 28)
-                            .stroke(.white.opacity(0.35), lineWidth: 1.5)
-                    }
-
-                    // Hold-Feedback: pulsierender blauer Glow-Ring
-                    if isGehalten {
-                        RoundedRectangle(cornerRadius: 28)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [.blue, .cyan, .blue],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 3.0
-                            )
-                            .blur(radius: 1.5)
-                    }
-                }
-            }
-            .shadow(
-                color: isGehalten ? .cyan.opacity(0.7) : (isActiveChild ? .cyan.opacity(0.55) : (isFront ? .blue.opacity(0.4) : .black.opacity(0.4))),
-                radius: isGehalten ? 40 : (isActiveChild ? 38 : (isFront ? 30 : 15)),
-                y: isActiveChild || isFront ? 12 : 6
-            )
-            .hoverEffect(.highlight)
-            .scaleEffect((panelsEingeblendet ? 1.0 : 0.7) * (isGehalten ? 1.06 : 1.0))
-            .opacity(panelsEingeblendet && !childHidden ? 1.0 : 0.0)
-            .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(animationDelay), value: panelsEingeblendet)
-            .animation(.easeOut(duration: 0.175), value: childHidden)
-            .animation(.easeOut(duration: 0.25), value: isGehalten)
+        // Delegated to a struct view so each card can own its own @State for
+        // gaze tracking (a @ViewBuilder method can't hold per-instance state).
+        ThemaPanelView(
+            thema: thema,
+            isFront: isFront,
+            isActiveChild: isActiveChild,
+            isGehalten: isGehalten,
+            childHidden: childHidden,
+            panelsEingeblendet: panelsEingeblendet,
+            animationDelay: animationDelay
+        )
     }
 
     @ViewBuilder
@@ -544,13 +663,13 @@ struct GenericRoomView: View {
         let textVisible = isFront || breadcrumbExpanded
         HStack(spacing: 14) {
             Image(systemName: "chevron.left")
-                .font(.title2).fontWeight(.medium)
-                .foregroundColor(.white.opacity(0.75))
+                .font(.title2).fontWeight(.semibold)
+                .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
                 .opacity(textVisible ? 1 : 0)
             Text(thema.name)
                 .font(.title).fontWeight(.semibold)
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white)
                 .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
                 .opacity(textVisible ? 1 : 0)
         }
@@ -559,23 +678,25 @@ struct GenericRoomView: View {
         .padding(.vertical, 22)
         .background {
             ZStack {
-                RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.72))
-                RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial.opacity(0.4))
+                // Solid-ish frosted pill: dark enough to stay clearly readable against any
+                // environment, but calmer than the active child cards (no bright cyan accents).
+                RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.55))
                 RoundedRectangle(cornerRadius: 28).fill(LinearGradient(
                     stops: [
-                        .init(color: .white.opacity(0.08), location: 0),
+                        .init(color: .white.opacity(0.14), location: 0),
                         .init(color: .clear, location: 0.6)
                     ],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 ))
                 RoundedRectangle(cornerRadius: 28).stroke(
-                    .white.opacity(0.35),
-                    lineWidth: 1.2
+                    .white.opacity(0.45),
+                    lineWidth: 1.4
                 )
             }
         }
         .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-        .hoverEffect(.highlight)
+        .roundedGazeHover(cornerRadius: 28)
         .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
         .opacity(panelsEingeblendet ? 1.0 : 0.0)
         .animation(.spring(response: 0.45, dampingFraction: 0.8), value: panelsEingeblendet)
@@ -675,17 +796,17 @@ struct GenericRoomView: View {
                 .padding(.vertical, 10)
                 .background {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.72))
-                        RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial.opacity(0.4))
+                        RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial)
+                        RoundedRectangle(cornerRadius: 28).fill(.black.opacity(0.18))
                         RoundedRectangle(cornerRadius: 28).fill(LinearGradient(
                             stops: [
-                                .init(color: .white.opacity(0.08), location: 0),
+                                .init(color: .white.opacity(0.12), location: 0),
                                 .init(color: .clear, location: 0.6)
                             ],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         ))
                         RoundedRectangle(cornerRadius: 28).stroke(
-                            .white.opacity(0.35),
+                            .white.opacity(0.3),
                             lineWidth: 1.2
                         )
                     }
@@ -693,7 +814,7 @@ struct GenericRoomView: View {
                 .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
         }
         .buttonStyle(.plain)
-        .hoverEffect(.highlight)
+        .roundedGazeHover(cornerRadius: 28)
         .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
         .opacity(panelsEingeblendet ? 1.0 : 0.0)
         .animation(.spring(response: 0.45, dampingFraction: 0.8), value: panelsEingeblendet)
@@ -718,13 +839,19 @@ struct GenericRoomView: View {
             validThema = Set(aktuelleThemen.map { "thema_\($0.id.uuidString)" })
         }
 
-        let stale = rootEntity.children.filter { entity in
+        let staleRoot = rootEntity.children.filter { entity in
             if entity.name.hasPrefix("crumb_") { return !validCrumb.contains(entity.name) }
+            return false
+        }
+        staleRoot.forEach { $0.removeFromParent() }
+
+        // Theme cards live under ringEntity (so they rotate together as one ring).
+        let staleRing = ringEntity.children.filter { entity in
             if entity.name.hasPrefix("child_") { return !validChild.contains(entity.name) }
             if entity.name.hasPrefix("thema_") { return !validThema.contains(entity.name) }
             return false
         }
-        stale.forEach { $0.removeFromParent() }
+        staleRing.forEach { $0.removeFromParent() }
 
         if skipBounce {
             // Back-navigation: only the RealityView move(to:) translation should animate
@@ -752,6 +879,9 @@ struct GenericRoomView: View {
         leseModusAktiv = false
         leseThema = nil
         aktuellerIndex = 0
+        stopMomentum()
+        ringAngle = 0
+        ringVelocity = 0
         await ladeChildren(vonThemaId: thema.id)
         animierePanels()
     }
@@ -781,6 +911,10 @@ struct GenericRoomView: View {
             fokusThema = thema
             childrenThemen = children
             breadcrumbExpanded = false
+            aktuellerIndex = 0
+            stopMomentum()
+            ringAngle = 0
+            ringVelocity = 0
             status = "\(children.count) Unterthemen"
             animierePanels()
         } catch {
@@ -804,6 +938,10 @@ struct GenericRoomView: View {
             fokusThema = thema
             childrenThemen = children
             breadcrumbExpanded = false
+            aktuellerIndex = 0
+            stopMomentum()
+            ringAngle = 0
+            ringVelocity = 0
             status = "\(children.count) Unterthemen"
             animierePanels()
         } catch {
@@ -814,6 +952,9 @@ struct GenericRoomView: View {
     private func zurueckEineEbene() async {
         navigiertTiefer = false
         breadcrumbExpanded = false
+        stopMomentum()
+        ringAngle = 0
+        ringVelocity = 0
         if let letztesImPfad = pfad.last {
             pfad.removeLast()
             fokusThema = letztesImPfad
@@ -844,6 +985,10 @@ struct GenericRoomView: View {
         fokusThema = thema
         navigiertTiefer = false
         breadcrumbExpanded = false
+        aktuellerIndex = 0
+        stopMomentum()
+        ringAngle = 0
+        ringVelocity = 0
 
         do {
             childrenThemen = try await themenService.getUnterthemen(vonThemaId: thema.id)
@@ -857,5 +1002,178 @@ struct GenericRoomView: View {
         }
 
         animierePanels(skipBounce: true)
+    }
+}
+
+// Tracks the last applied "front" highlight state for a ring panel so the update
+// closure only schedules a move(to:) when the visual target actually changed —
+// without this guard, every unrelated @State change would restart the panels'
+// scale animation, causing flicker.
+private struct RingPanelMarker: Component {
+    var isFront: Bool
+}
+
+// Per-card view that owns the @State needed to track its own gaze hover. A
+// @ViewBuilder helper method can't hold per-instance state, so the root-room
+// carousel cards are rendered through this struct. The blue gaze treatment is
+// scoped to root cards (i.e. not isActiveChild and not isFront) and applied
+// directly from `isGazed` — no system .hoverEffect closures, just plain
+// conditional SwiftUI styling driven by .onHover.
+private struct ThemaPanelView: View {
+    let thema: Thema
+    let isFront: Bool
+    let isActiveChild: Bool
+    let isGehalten: Bool
+    let childHidden: Bool
+    let panelsEingeblendet: Bool
+    let animationDelay: Double
+
+    @State private var isGazed: Bool = false
+
+    var body: some View {
+        // Gaze-Blau gilt nur für die Root-Karten — Children haben bereits ihren
+        // eigenen Cyan-Look und der frühere isFront-Pfad ist im Root deaktiviert.
+        let useGazeBlue = !isActiveChild && !isFront && isGazed
+
+        Text(thema.name)
+            .font(isActiveChild ? .system(size: 54, weight: .bold) : .extraLargeTitle)
+            .fontWeight(isActiveChild ? .bold : (isFront ? .bold : .semibold))
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.9), radius: 4, x: 0, y: 1)
+            .multilineTextAlignment(.center)
+            .frame(minWidth: isActiveChild ? 300 : 260)
+            .padding(.horizontal, isActiveChild ? 56 : 48)
+            .padding(.vertical, isActiveChild ? 40 : 32)
+            .background {
+                // Direkter Hintergrund-Tausch: wenn die Karte angeschaut wird,
+                // werfen wir das gesamte Glas/Schwarz-Layer weg und füllen mit
+                // einem REINEN blauen Rechteck. Keine Material-Layer mehr, die
+                // den Farbton verwässern könnten — die Karte ist dann komplett blau.
+                if useGazeBlue {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(Color.blue)
+                        RoundedRectangle(cornerRadius: 28)
+                            .stroke(.white.opacity(0.85), lineWidth: 2.5)
+                        if isGehalten {
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.blue, .cyan, .blue],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 3.0
+                                )
+                                .blur(radius: 1.5)
+                        }
+                    }
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(.ultraThinMaterial)
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(.black.opacity(isActiveChild ? 0.22 : 0.16))
+
+                        if isActiveChild {
+                            RoundedRectangle(cornerRadius: 28)
+                                .fill(LinearGradient(
+                                    colors: [.white.opacity(0.18), .cyan.opacity(0.10), .clear],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(LinearGradient(
+                                    colors: [.white.opacity(0.95), .cyan.opacity(0.65), .white.opacity(0.55)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ), lineWidth: 2.5)
+                        } else if isFront {
+                            RoundedRectangle(cornerRadius: 28)
+                                .fill(LinearGradient(
+                                    colors: [.white.opacity(0.15), .blue.opacity(0.05), .clear],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(LinearGradient(
+                                    colors: [.white.opacity(0.7), .blue.opacity(0.3), .white.opacity(0.3)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ), lineWidth: 2.0)
+                        } else {
+                            RoundedRectangle(cornerRadius: 28)
+                                .fill(LinearGradient(
+                                    stops: [.init(color: .white.opacity(0.08), location: 0), .init(color: .clear, location: 0.4)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(.white.opacity(0.35), lineWidth: 1.5)
+                        }
+
+                        if isGehalten {
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.blue, .cyan, .blue],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 3.0
+                                )
+                                .blur(radius: 1.5)
+                        }
+                    }
+                }
+            }
+            .shadow(
+                color: isGehalten
+                    ? .cyan.opacity(0.7)
+                    : (isActiveChild
+                        ? .cyan.opacity(0.55)
+                        : (isFront
+                            ? .blue.opacity(0.4)
+                            : (useGazeBlue ? .blue.opacity(0.6) : .black.opacity(0.4)))),
+                radius: isGehalten ? 40 : (isActiveChild ? 38 : (isFront ? 30 : (useGazeBlue ? 30 : 15))),
+                y: (isActiveChild || isFront || useGazeBlue) ? 12 : 6
+            )
+            // Hit-Region für sowohl Hover-Effekt als auch Hover-Events
+            // explizit setzen — ohne das fängt visionOS das Gaze-Event in
+            // RealityKit-Attachments nicht zuverlässig ein.
+            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: 28))
+            .contentShape(.interaction, RoundedRectangle(cornerRadius: 28))
+            .hoverEffect(.highlight)
+            .hoverEffect { effect, isActive, _ in
+                effect.scaleEffect(isActive ? 1.05 : 1.0)
+            }
+            .scaleEffect((panelsEingeblendet ? 1.0 : 0.7) * (isGehalten ? 1.06 : 1.0))
+            .opacity(panelsEingeblendet && !childHidden ? 1.0 : 0.0)
+            // visionOS feuert .onContinuousHover zuverlässig über den Eye-Tracker
+            // — auch in RealityKit-Attachments, anders als .onHover, das hier
+            // gelegentlich nicht propagiert wird. .onHover bleibt als doppelte
+            // Absicherung drin, falls eine der beiden APIs ausfällt.
+            .onContinuousHover { phase in
+                switch phase {
+                case .active:
+                    if !isGazed { isGazed = true }
+                case .ended:
+                    if isGazed { isGazed = false }
+                }
+            }
+            .onHover { hovering in
+                if isGazed != hovering { isGazed = hovering }
+            }
+            .animation(.easeOut(duration: 0.15), value: useGazeBlue)
+            .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(animationDelay), value: panelsEingeblendet)
+            .animation(.easeOut(duration: 0.175), value: childHidden)
+            .animation(.easeOut(duration: 0.25), value: isGehalten)
+    }
+}
+
+private extension View {
+    /// Native visionOS gaze feedback for an interactive card/button: an instant, rounded
+    /// brighten plus a subtle 1.05× scale-up when the user looks at it. The highlight is
+    /// shaped to the card's corner radius so it never reads as a rectangle over a rounded card.
+    func roundedGazeHover(cornerRadius: CGFloat) -> some View {
+        self
+            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: cornerRadius))
+            .hoverEffect(.highlight)
+            .hoverEffect { effect, isActive, _ in
+                effect.scaleEffect(isActive ? 1.05 : 1.0)
+            }
     }
 }
