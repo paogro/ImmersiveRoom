@@ -46,9 +46,9 @@ struct GenericRoomView: View {
     @State var momentumTask: Task<Void, Never>? = nil
 
     let themenService = ThemenService()
-    let ringDragSensitivity: Float = 0.25          // radians of ring rotation per metre of horizontal drag (tunable)
+    let ringDragSensitivity: Float = 2.5           // radians of ring rotation per metre of horizontal hand drag (scene space)
     let ringMomentumDamping: Float = 0.5           // velocity multiplier per ~16ms tick during glide
-    let ringMomentumMinSpeed: Float = 3.5          // rad/s below which momentum gives up and snaps
+    let ringMomentumMinSpeed: Float = 2.5          // rad/s below which momentum gives up and snaps
 
     var isRootLevel: Bool {
         fokusThema == nil
@@ -201,11 +201,11 @@ struct GenericRoomView: View {
                     let theta = Float(index) * angleStepLayout
                     let zielPosition = SIMD3<Float>(radiusLayout * sin(theta), cardYLayout, -radiusLayout * cos(theta))
                     let zielRotation = simd_quatf(angle: -theta, axis: [0, 1, 0])
-                    // Im Root-Carousel bekommt KEINE Karte mehr eine positionsabhängige
-                    // Hervorhebung — der Blick (Gaze-Hover) bestimmt allein, welche Karte
-                    // aufleuchtet. Children behalten ihr eigenes Styling.
-                    let isFront = false
-                    let zielScale: Float = 1.0
+                    // Die Karte in der Frontmitte (aktuellerIndex) wird vergrößert und
+                    // hervorgehoben, damit beim Drehen klar sichtbar ist, welches Thema
+                    // gerade zentriert ist. Gaze-Hover bleibt zusätzlich aktiv.
+                    let isFront = isRootLevel && (index == aktuellerIndex)
+                    let zielScale: Float = isFront ? 1.18 : 1.0
 
                     let prevMarker = panel.components[RingPanelMarker.self]
                     let zielTransform = Transform(
@@ -299,11 +299,11 @@ struct GenericRoomView: View {
             }
 
             if fokusThema == nil && !leseModusAktiv {
-                ForEach(aktuelleThemen) { thema in
+                ForEach(Array(aktuelleThemen.enumerated()), id: \.element.id) { index, thema in
                     Attachment(id: "thema_\(thema.id.uuidString)") {
-                        // Root-Karten haben keine positionsabhängige Hervorhebung mehr —
-                        // der Gaze-Hover (.roundedGazeHover unten) übernimmt das Highlight.
-                        themaPanel(thema: thema, isFront: false)
+                        // Frontkarte (zentriert beim Drehen) wird hervorgehoben; alle
+                        // anderen Karten reagieren weiterhin auf den Gaze-Hover.
+                        themaPanel(thema: thema, isFront: index == aktuellerIndex)
                     }
                 }
             }

@@ -23,7 +23,7 @@ struct ThemaPanelView: View {
         Text(thema.name)
             .font(isActiveChild ? .system(size: 54, weight: .bold) : .extraLargeTitle)
             .fontWeight(isActiveChild ? .bold : (isFront ? .bold : .semibold))
-            .foregroundStyle(isGazedRoot ? Color.black.opacity(0.85) : ((!isActiveChild && !isFront) ? .white.opacity(0.5) : .white))
+            .foregroundStyle(isGazedRoot ? Color.white : ((!isActiveChild && !isFront) ? .white.opacity(0.9) : .white))
             .shadow(color: isGazedRoot ? .black.opacity(0.15) : .black.opacity(0.9), radius: 4, x: 0, y: 1)
             .multilineTextAlignment(.center)
             .frame(minWidth: isActiveChild ? 300 : 260)
@@ -34,17 +34,17 @@ struct ThemaPanelView: View {
                 // non-gazed cards is impossible to miss.
                 if isGazedRoot {
                     ZStack {
-                        // Outer corona: blurred white halo that bleeds outside the card bounds
+                        // Outer corona: blurred blue halo that bleeds outside the card bounds
                         RoundedRectangle(cornerRadius: 28)
-                            .fill(Color.blue.opacity(0.4))
+                            .fill(Color.blue.opacity(0.6))
                             .blur(radius: 28)
                             .padding(-20)
                         // Solid bright fill
                         RoundedRectangle(cornerRadius: 28)
-                            .fill(Color.blue.opacity(0.85))
+                            .fill(Color.blue.opacity(0.9))
                         // Bright border ring
                         RoundedRectangle(cornerRadius: 28)
-                            .stroke(Color.blue, lineWidth: 4.0)
+                            .stroke(Color.white, lineWidth: 5.0)
                         if isGehalten {
                             RoundedRectangle(cornerRadius: 28)
                                 .stroke(
@@ -62,7 +62,7 @@ struct ThemaPanelView: View {
                         RoundedRectangle(cornerRadius: 28)
                             .fill(.ultraThinMaterial)
                         RoundedRectangle(cornerRadius: 28)
-                            .fill(.black.opacity(isActiveChild ? 0.22 : (isFront ? 0.16 : 0.40)))
+                            .fill(.black.opacity(isActiveChild ? 0.22 : (isFront ? 0.16 : 0.55)))
 
                         if isActiveChild {
                             RoundedRectangle(cornerRadius: 28)
@@ -93,7 +93,7 @@ struct ThemaPanelView: View {
                                     startPoint: .top, endPoint: .bottom
                                 ))
                             RoundedRectangle(cornerRadius: 28)
-                                .stroke(.white.opacity(0.12), lineWidth: 1.0)
+                                .stroke(.white.opacity(0.5), lineWidth: 1.5)
                         }
 
                         if isGehalten {
@@ -117,8 +117,8 @@ struct ThemaPanelView: View {
                         ? .cyan.opacity(0.55)
                         : (isFront
                             ? .blue.opacity(0.4)
-                            : (isGazedRoot ? .white : .black.opacity(0.25)))),
-                radius: isGehalten ? 40 : (isActiveChild ? 38 : (isFront ? 30 : (isGazedRoot ? 90 : 8))),
+                            : (isGazedRoot ? .blue.opacity(0.9) : .black.opacity(0.25)))),
+                radius: isGehalten ? 40 : (isActiveChild ? 38 : (isFront ? 30 : (isGazedRoot ? 60 : 8))),
                 y: (isActiveChild || isFront || isGazedRoot) ? 12 : 6
             )
             // Hit-Region für sowohl Hover-Effekt als auch Hover-Events
@@ -130,7 +130,7 @@ struct ThemaPanelView: View {
             // compete with .onContinuousHover in the compositor, preventing isGazed
             // from ever being set. Root cards drive all visual feedback from isGazed.
             .systemHoverIfActiveChild(isActiveChild)
-            .scaleEffect((panelsEingeblendet ? 1.0 : 0.7) * (isGehalten ? 1.06 : 1.0) * (!isActiveChild && isGazed ? 1.25 : 1.0))
+            .scaleEffect((panelsEingeblendet ? 1.0 : 0.7) * (isGehalten ? 1.06 : 1.0) * (!isActiveChild && isGazed ? 1.3 : 1.0))
             .opacity(panelsEingeblendet && !childHidden ? 1.0 : 0.0)
             // visionOS feuert .onContinuousHover zuverlässig über den Eye-Tracker
             // — auch in RealityKit-Attachments, anders als .onHover, das hier

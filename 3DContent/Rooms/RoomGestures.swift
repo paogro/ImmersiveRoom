@@ -85,7 +85,11 @@ extension GenericRoomView {
             .onChanged { value in
                 let count = sichtbareThemen.count
                 guard count > 0 else { return }
-                let tx = Float(value.translation3D.x)
+                // value.translation3D liefert PUNKTE (SwiftUI-local), nicht Meter.
+                // Roh verrechnet macht das den Ring unsteuerbar empfindlich. Erst in
+                // Szenenraum (Meter) konvertieren, dann ist ringDragSensitivity eine
+                // physikalisch sinnvolle "Radiant pro Meter Handbewegung"-Größe.
+                let tx = value.convert(value.translation3D, from: .local, to: .scene).x
                 let now = Date()
 
                 if !ringDragActive {
