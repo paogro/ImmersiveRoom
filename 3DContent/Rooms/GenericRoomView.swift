@@ -193,9 +193,15 @@ struct GenericRoomView: View {
                     if panel.components[InputTargetComponent.self] == nil {
                         panel.components.set(InputTargetComponent(allowedInputTypes: .all))
                         panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.95, 0.35, 0.05))]))
-                        // Required for the SwiftUI .hoverEffect inside the attachment to receive
-                        // gaze state — without it, topic cards in the room get no hover feedback.
-                        panel.components.set(HoverEffectComponent())
+                        // Root cards get a blue spotlight effect that follows the
+                        // user's gaze across the surface. Children keep the default
+                        // subtle highlight. Both are entity-level system effects —
+                        // visionOS does not expose gaze position to the app.
+                        if fokusThema == nil {
+                            panel.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
+                        } else {
+                            panel.components.set(HoverEffectComponent())
+                        }
                     }
 
                     let theta = Float(index) * angleStepLayout

@@ -53,9 +53,9 @@ This folder contains everything that makes up the immersive 3D room experience. 
 | `ringVelocity` | `Float` | Smoothed angular velocity at drag release, used for momentum glide |
 | `ringInteracting` | `Bool` | When `true`, the `update` closure skips writing `ringAngle` to avoid fighting the gesture |
 | `momentumTask` | `Task?` | Currently running glide+snap momentum task |
-| `ringDragSensitivity` | `Float = 0.25` | Radians of ring rotation per metre of horizontal drag |
-| `ringMomentumDamping` | `Float = 0.5` | Velocity multiplier per 16ms tick during glide |
-| `ringMomentumMinSpeed` | `Float = 3.5` | rad/s below which momentum stops and snap begins |
+| `ringDragSensitivity` | `Float = 2.5` | Radians of ring rotation per metre of horizontal drag |
+| `ringMomentumDamping` | `Float = 0.5` | Velocity multiplier per ~16ms tick during glide |
+| `ringMomentumMinSpeed` | `Float = 2.5` | rad/s below which momentum stops and snap begins |
 
 ### Computed Properties
 
@@ -166,14 +166,14 @@ The hold gesture uses `DragGesture(minimumDistance: 0)` (not a long-press recogn
 
 **What lives here:** `struct ThemaPanelView: View` — the reusable card rendered for every topic in both the root carousel and focus-level child ring.
 
-This is a standalone struct (not a `@ViewBuilder` method) because it needs its own `@State private var isGazed: Bool` — a `@ViewBuilder` method on the parent view cannot hold per-instance state.
+The struct is purely declarative — no `@State`. visionOS does not expose gaze position to apps; the blue gaze highlight on root cards is rendered by the system compositor via `HoverEffectComponent(.spotlight(...))` on the RealityKit entity (configured in `GenericRoomView.swift`), not by SwiftUI state.
 
 ### Parameters
 
 | Parameter | Type | Purpose |
 |---|---|---|
 | `thema` | `Thema` | The topic data to display |
-| `isFront` | `Bool` | Whether this card is the current front card (legacy; currently always `false` in root) |
+| `isFront` | `Bool` | `true` for the card currently at carousel center (`index == aktuellerIndex`) — drives bold text weight and full-opacity foreground; passed `false` for all child cards |
 | `isActiveChild` | `Bool` | `true` for focus-level child cards — activates larger font and cyan border styling |
 | `isGehalten` | `Bool` | `true` while the user holds the card — applies scale feedback and cyan glow ring |
 | `childHidden` | `Bool` | `true` when breadcrumb is expanded — hides child cards so the breadcrumb list is readable |
@@ -182,15 +182,22 @@ This is a standalone struct (not a `@ViewBuilder` method) because it needs its o
 
 ### Gaze Highlight (root cards only)
 
-Root carousel cards (`!isActiveChild && !isFront`) drive their own visual feedback from `isGazed` rather than using system `.hoverEffect`, because system effects intercept hover events before `.onContinuousHover` can fire. When `isGazedRoot` is `true`:
+Root cards get their blue gaze feedback from the **system compositor**, not from SwiftUI state. visionOS does not expose gaze position to apps for privacy reasons, so `.onHover` / `.onContinuousHover` / custom `.hoverEffect`-closures inside RealityView attachments do not reliably render through. Instead, the entity carries an entity-level effect:
 
-- Background: `Color.blue.opacity(0.85)` solid fill + outer blurred corona (`Color.blue.opacity(0.4)`, blur radius 28, padding −20)
-- Border: `Color.blue` stroke, 4 pt
-- Text: `Color.black.opacity(0.85)` (readable on the blue fill)
-- Scale: 1.25× (via `.scaleEffect`)
-- Shadow: white, radius 90
+```swift
+// GenericRoomView.swift — inside the update closure, set once per panel
+panel.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
+```
 
-Non-gazed root cards: dimmed text (`white.opacity(0.5)`), near-invisible border (`white.opacity(0.12)`), no glow.
+The system renders a focused blue spotlight that follows the user's gaze across the card surface. Children cards in focus mode keep the default `HoverEffectComponent()` (subtle uniform brighten).
+
+`ThemaPanelView` itself only renders the **idle** look:
+- `.ultraThinMaterial` blur + `.black.opacity(0.55)` overlay for readability against any skybox
+- Subtle white gradient top-stop + thin white border (`white.opacity(0.5)`, 1.5 pt)
+- Front card (`isFront == true`): bold text, full opacity white — plus the 1.18× scale applied by `GenericRoomView`'s ring layout (carousel-center cue)
+- Held card (`isGehalten == true`): scale bump to 1.06× plus a cyan/blue gradient border ring
+
+To tune the gaze effect, change the `strength:` value (currently `20.0`; visionOS clamps internally) or swap `.spotlight` for `.highlight` (uniform tint, more subtle).
 
 ---
 
@@ -252,7 +259,7 @@ Applies the native visionOS `.hoverEffect(.highlight)` plus a 1.05× scale `hove
 
 ### `systemHoverIfActiveChild(_:)`
 
-Applies `roundedGazeHover`-equivalent system effects only when `isActiveChild == true`. Root carousel cards deliberately skip this — applying system hover effects intercepts the compositor events that `.onContinuousHover` needs to set `isGazed`.
+Applies `roundedGazeHover`-equivalent system effects (highlight + 1.05× scale) only when `isActiveChild == true`. Root carousel cards skip this because their gaze feedback is rendered at the entity level by `HoverEffectComponent(.spotlight(...))` — stacking a SwiftUI hover effect on top would just compete with the system spotlight without adding anything visible.
 
 ---
 
@@ -275,7 +282,7 @@ All members in the extension files (`RoomViewModel.swift`, `RoomGestures.swift`)
 | Momentum glide + snap behaviour | `RoomGestures.swift` — `starteMomentum()` |
 | Hold-to-read gesture timing | `RoomGestures.swift` — `holdGesture` (450 ms sleep) |
 | Pinch zoom | `RoomGestures.swift` — `zoomGesture` |
-| Gaze highlight on root cards | `Views/ThemaPanelView.swift` — `isGazedRoot` branch |
+| Gaze highlight on root cards | `GenericRoomView.swift` — `HoverEffectComponent(.spotlight(...))` setup inside the `update` closure (~line 201) |
 | Card appearance (colors, scale, font) | `Views/ThemaPanelView.swift` |
 | Breadcrumb pill appearance | `Views/CrumbPanelView.swift` |
 | Detail/reading overlay | `Views/LesePanelView.swift` |
