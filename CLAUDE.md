@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### App Lifecycle & State
 
-- `App/ImmersiveRoomApp.swift` — App entry point. Declares two scenes: a `WindowGroup` (main UI) and an `ImmersiveSpace` (the 3D environment).
+- `App/ImmersiveRoomApp.swift` — App entry point. Declares three scenes: a `WindowGroup` (id `"main"`, main UI), a `WindowGroup(id: "quelle", for: URL.self)` (in-app browser window for article sources — see `Views/QuelleWebView.swift`), and an `ImmersiveSpace` (the 3D environment).
 - `ImmersiveRoom/AppModel.swift` — Central `@Observable` state class. Owns:
   - `immersiveSpaceState` (closed/inTransition/open)
   - `isImmersiveOpen: Bool`
@@ -72,9 +72,10 @@ Local Swift package that bundles RealityKit assets (Reality Composer Pro project
 
 **Lesemodus** (detail view):
 - Activated by holding a panel for 450ms OR tapping a leaf node (no children).
-- Shows a 700×500 info panel with the theme name and `thema.description` from the DB.
-- If no description is set in the DB, a placeholder empty-state is shown.
-- Tap anywhere on the panel to close it.
+- Shows a 700×500 info panel. The content is the **latest published news article** for the leaf topic, fetched from the `published_news_view` view via `ThemenService.getNeuesteNews(fuerTopicId:)` — NOT `thema.description` (which is now empty in the DB).
+- Panel shows: the article `headline` as the white title (auto-shrinking, up to 4 lines, `minimumScaleFactor` 0.5) + cleaned `zusammenfassung` (summary, embedded source link stripped) + a "Mehr Infos – Quelle öffnen" button. The button calls `openWindow(id: "quelle", value: source_url)` to open the source in an in-app browser window (`QuelleWebView`) next to the immersive space — NOT Safari.
+- The article loads asynchronously: the panel appears immediately with a loading indicator, then fills in. If no published article exists for the topic, a placeholder empty-state is shown.
+- Tap anywhere on the panel (outside the link button) to close it.
 
 **Gestures:**
 
@@ -112,4 +113,4 @@ All positions are in world space (`relativeTo: nil`). User stands at origin.
 - **Async data loading:** All Supabase calls use `async/await` inside `.task {}` modifiers or `Task { }` blocks.
 - **Hold-gesture pattern:** `DragGesture(minimumDistance: 0)` starts a `Task { @MainActor in try? await Task.sleep(for: .milliseconds(450)) }`. Movement > 4cm cancels the task. On activation, `holdTriggered = true` is set so the co-firing `SpatialTapGesture` is suppressed.
 - **Adding a new room:** Add a `case "NewCategory": GenericRoomView(skyboxTextureName: "newcategory_equirectangular")` to the switch in `ImmersiveView.swift` and provide the matching equirectangular texture asset.
-- **Description data:** `thema.description` is optional — always guard/trim before display. `ThemenService.select()` fetches all columns automatically, so no query changes are needed when new columns are added to the `topics` table.
+- **News content:** Article content lives in the `published_news_view` view (keyed by `topic_id`), not in `topics.description`. Models: `Models/NewsArtikel.swift`. Loaded by `ThemenService.getNeuesteNews(fuerTopicId:)` (newest article, `published_at desc, limit 1`). `NewsArtikel.zusammenfassung` strips the embedded source link; `NewsArtikel.quelleURL` exposes `source_url` for the link button. `thema.description` is now unused/empty but the field is kept on the `Thema` model.

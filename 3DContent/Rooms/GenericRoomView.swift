@@ -20,6 +20,8 @@ struct GenericRoomView: View {
 
     @State var leseThema: Thema? = nil
     @State var leseModusAktiv = false
+    @State var leseArtikel: NewsArtikel? = nil   // geladener News-Artikel zum aktuellen Lese-Thema
+    @State var leseLaedt: Bool = false           // true während der Artikel aus der DB geladen wird
 
     @State var panelsEingeblendet = false
     @State var aktuellerIndex: Int = 0
@@ -102,11 +104,10 @@ struct GenericRoomView: View {
                 if let lesePanel = attachments.entity(for: "lese_\(lese.id.uuidString)") {
                     lesePanel.position = SIMD3<Float>(0, 1.5, -1.8)
                     lesePanel.name = "lese_\(lese.id.uuidString)"
-
-                    if lesePanel.components[InputTargetComponent.self] == nil {
-                        lesePanel.components.set(InputTargetComponent(allowedInputTypes: .all))
-                        lesePanel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.5, 1.0, 0.05))]))
-                    }
+                    // Bewusst KEIN InputTargetComponent/CollisionComponent: sonst würde die
+                    // szenenweite SpatialTapGesture (tapGesture) das ganze Panel abfangen und
+                    // die SwiftUI-Buttons (Schließen, "Mehr Infos") bekämen ihren Tap nie.
+                    // Schließen und Link laufen jetzt rein über SwiftUI im LesePanelView.
                     rootEntity.addChild(lesePanel)
                 }
                 rootEntity.scale = SIMD3<Float>(repeating: baumScale)
@@ -300,7 +301,7 @@ struct GenericRoomView: View {
 
             if leseModusAktiv, let lese = leseThema {
                 Attachment(id: "lese_\(lese.id.uuidString)") {
-                    LesePanelView(thema: lese, leseModusAktiv: leseModusAktiv)
+                    LesePanelView(thema: lese, artikel: leseArtikel, laedt: leseLaedt, leseModusAktiv: leseModusAktiv, onClose: { schliesseLesemodus() })
                 }
             }
 

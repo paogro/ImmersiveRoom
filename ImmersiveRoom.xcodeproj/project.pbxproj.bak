@@ -20,11 +20,9 @@
 		FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */; };
 		FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE42F7C220C000934D4 /* AppConfig.swift */; };
 		FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE52F7C242F000934D4 /* Thema.swift */; };
-		FE00AA022F7C300000934D02 /* NewsArtikel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00AA012F7C300000934D01 /* NewsArtikel.swift */; };
 		FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE72F7C2482000934D4 /* ThemenService.swift */; };
 		FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */; };
 		FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */; };
-		FE00BB022F7C300000934D04 /* QuelleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00BB012F7C300000934D03 /* QuelleWebView.swift */; };
 		FEAB2EF02F7C28FA000934D4 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EEF2F7C28FA000934D4 /* Auth */; };
 		FEAB2EF22F7C28FA000934D4 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF12F7C28FA000934D4 /* Functions */; };
 		FEAB2EF42F7C28FA000934D4 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF32F7C28FA000934D4 /* PostgREST */; };
@@ -50,10 +48,8 @@
 		FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRoomApp.swift; sourceTree = "<group>"; };
 		FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
 		FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		FE00BB012F7C300000934D03 /* QuelleWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuelleWebView.swift; sourceTree = "<group>"; };
 		FEAB2EE42F7C220C000934D4 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		FEAB2EE52F7C242F000934D4 /* Thema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thema.swift; sourceTree = "<group>"; };
-		FE00AA012F7C300000934D01 /* NewsArtikel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsArtikel.swift; sourceTree = "<group>"; };
 		FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		FEAB2EE72F7C2482000934D4 /* ThemenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemenService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -182,7 +178,6 @@
 			isa = PBXGroup;
 			children = (
 				FEAB2EE52F7C242F000934D4 /* Thema.swift */,
-				FE00AA012F7C300000934D01 /* NewsArtikel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -200,7 +195,6 @@
 			isa = PBXGroup;
 			children = (
 				FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */,
-				FE00BB012F7C300000934D03 /* QuelleWebView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -319,7 +313,6 @@
 				FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */,
 				FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */,
 				FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */,
-				FE00BB022F7C300000934D04 /* QuelleWebView.swift in Sources */,
 				FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */,
 				FE95209A2FBCA06E00F4302D /* RoomViewModel.swift in Sources */,
 				FE95209B2FBCA06E00F4302D /* ZurueckButtonView.swift in Sources */,
@@ -329,7 +322,6 @@
 				FE95209F2FBCA06E00F4302D /* LesePanelView.swift in Sources */,
 				FE9520A02FBCA06E00F4302D /* ThemaPanelView.swift in Sources */,
 				FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */,
-				FE00AA022F7C300000934D02 /* NewsArtikel.swift in Sources */,
 				FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

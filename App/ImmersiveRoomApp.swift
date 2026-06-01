@@ -11,6 +11,15 @@ struct ImmersiveRoomApp: App {
                 .environment(appModel)
         }
 
+        // Eigenes Fenster für die Artikel-Quelle (In-App-Browser). Öffnet sich
+        // neben der Immersive Space, sodass der Raum erhalten bleibt.
+        WindowGroup(id: "quelle", for: URL.self) { $url in
+            if let url {
+                QuelleWebView(url: url)
+            }
+        }
+        .defaultSize(width: 900, height: 700)
+
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
             ImmersiveView()
                 .environment(appModel)

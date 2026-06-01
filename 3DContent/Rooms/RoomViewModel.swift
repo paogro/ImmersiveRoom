@@ -49,6 +49,37 @@ extension GenericRoomView {
         }
     }
 
+    // MARK: - Lesemodus
+
+    /// Öffnet den Lesemodus für ein Leaf-Thema und lädt dazu den neuesten
+    /// freigegebenen News-Artikel aus published_news_view nach. Das Panel
+    /// erscheint sofort (mit Lade-Indikator); der Inhalt wird asynchron
+    /// nachgereicht, sobald die DB-Antwort da ist.
+    func oeffneLesemodus(fuer thema: Thema) async {
+        leseThema = thema
+        leseArtikel = nil
+        leseLaedt = true
+        leseModusAktiv = true
+        status = "\(thema.name) – Lesemodus"
+        do {
+            leseArtikel = try await themenService.getNeuesteNews(fuerTopicId: thema.id)
+        } catch {
+            status = "Fehler News: \(error.localizedDescription)"
+        }
+        leseLaedt = false
+    }
+
+    /// Schließt den Lesemodus und räumt die verwaiste Lese-Entity aus der Szene.
+    /// Wird vom ✕-Button bzw. vom Tap auf den Panel-Hintergrund (SwiftUI) aufgerufen.
+    func schliesseLesemodus() {
+        leseModusAktiv = false
+        leseThema = nil
+        leseArtikel = nil
+        leseLaedt = false
+        let staleLese = rootEntity.children.filter { $0.name.hasPrefix("lese_") }
+        staleLese.forEach { $0.removeFromParent() }
+    }
+
     // MARK: - Navigation
 
     func ladeErsteEbene() async {
@@ -85,9 +116,7 @@ extension GenericRoomView {
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
             if children.isEmpty {
-                leseThema = thema
-                leseModusAktiv = true
-                status = "\(thema.name) – Lesemodus"
+                await oeffneLesemodus(fuer: thema)
                 return
             }
             navigiertTiefer = true
@@ -110,9 +139,7 @@ extension GenericRoomView {
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
             if children.isEmpty {
-                leseThema = thema
-                leseModusAktiv = true
-                status = "\(thema.name) – Lesemodus"
+                await oeffneLesemodus(fuer: thema)
                 return
             }
             if let fokus = fokusThema { pfad.append(fokus) }

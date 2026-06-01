@@ -17,18 +17,10 @@ extension GenericRoomView {
                     return
                 }
 
-                if name.hasPrefix("lese_") {
-                    leseModusAktiv = false
-                    leseThema = nil
-                    // Closing the detail overlay is NOT a navigation event — the underlying
-                    // panels never went anywhere, they were just hidden behind the overlay.
-                    // Don't call animierePanels(); that would tear down and remount every
-                    // panel, re-triggering their initial-offset slide-in. Instead, just
-                    // remove the orphaned lese entity so it leaves the scene cleanly.
-                    let staleLese = rootEntity.children.filter { $0.name.hasPrefix("lese_") }
-                    staleLese.forEach { $0.removeFromParent() }
-                    return
-                }
+                // Hinweis: Das Lesepanel wird NICHT mehr hier geschlossen. Es hat kein
+                // InputTargetComponent mehr, also erreicht uns gar kein "lese_"-Tap.
+                // Schließen läuft über den ✕-Button bzw. den Hintergrund-Tap im
+                // LesePanelView (SwiftUI) → schliesseLesemodus().
 
                 if name.hasPrefix("crumb_") {
                     let uuidString = String(name.dropFirst("crumb_".count))
@@ -319,18 +311,18 @@ extension GenericRoomView {
     }
 
     func loeseLeseModusAus(panelName: String) {
+        let thema: Thema?
         if panelName.hasPrefix("thema_") {
             let uuidString = String(panelName.dropFirst("thema_".count))
-            if let thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString }) {
-                leseThema = thema
-                leseModusAktiv = true
-            }
+            thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString })
         } else if panelName.hasPrefix("child_") {
             let uuidString = String(panelName.dropFirst("child_".count))
-            if let thema = childrenThemen.first(where: { $0.id.uuidString == uuidString }) {
-                leseThema = thema
-                leseModusAktiv = true
-            }
+            thema = childrenThemen.first(where: { $0.id.uuidString == uuidString })
+        } else {
+            thema = nil
+        }
+        if let thema {
+            Task { await oeffneLesemodus(fuer: thema) }
         }
     }
 }

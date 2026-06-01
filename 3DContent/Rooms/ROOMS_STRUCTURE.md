@@ -141,7 +141,7 @@ Back to previous level or root
 
 | Property | Gesture type | Trigger | Action |
 |---|---|---|---|
-| `tapGesture` | `SpatialTapGesture` | Quick tap on any entity | Routes by entity name prefix (`lese_`, `crumb_`, `thema_`, `child_`) to the right navigation call |
+| `tapGesture` | `SpatialTapGesture` | Quick tap on any entity | Routes by entity name prefix (`crumb_`, `thema_`, `child_`) to the right navigation call. Note: the lese panel is **not** handled here — it has no input target; closing is done in SwiftUI via `onClose`. |
 | `swipeGesture` | `DragGesture(minimumDistance: 10)` | Horizontal drag anywhere in scene | Rotates `ringEntity` around Y axis in real time; on release, calls `starteMomentum()` |
 | `holdGesture` | `DragGesture(minimumDistance: 0)` | Touch + hold for 450 ms without moving >4 cm | Fires `loeseLeseModusAus()` to open Lesemodus; sets `holdTriggered` to suppress the co-firing tap |
 | `zoomGesture` | `MagnifyGesture` | Pinch | Scales the entire scene via `baumScale` (clamped 0.4–2.5×) |
@@ -226,10 +226,14 @@ To tune the gaze effect, change the `strength:` value (currently `20.0`; visionO
 
 | Parameter | Type | Purpose |
 |---|---|---|
-| `thema` | `Thema` | Topic whose name and `description` are displayed |
+| `thema` | `Thema` | Leaf topic — its `name` is shown as the overline label |
+| `artikel` | `NewsArtikel?` | The loaded news article; `nil` while loading or if none exists |
+| `laedt` | `Bool` | `true` while the article is being fetched — shows a loading indicator |
 | `leseModusAktiv` | `Bool` | Drives the scale+opacity entrance spring (0.5→1.0 scale, 0→1 opacity) |
 
-Shows `thema.description` if set; otherwise an empty-state illustration. Tap anywhere on the panel closes it (handled by `tapGesture` matching the `lese_` prefix). The panel is mounted by `rootEntity`, not `ringEntity`, so it stays in world space regardless of ring rotation.
+Shows the article's `headline` as title and `zusammenfassung` (cleaned summary) as body, plus a "Mehr Infos – Quelle öffnen" button (`artikel.quelleURL` → `openWindow(id: "quelle", value:)`). While `laedt` is true, a loading indicator is shown; if no article exists, an empty-state illustration. The article is loaded by `oeffneLesemodus(fuer:)` in `RoomViewModel.swift` from `published_news_view` — no longer from `thema.description`.
+
+**Closing & input:** The lese panel entity intentionally has **no** `InputTargetComponent`/`CollisionComponent`, so the scene-level `tapGesture` does not target it — otherwise it would swallow taps meant for the SwiftUI buttons inside the attachment (close ✕ and "Mehr Infos"). Closing is therefore handled in SwiftUI: a ✕ `Button` and a full-panel background `.onTapGesture` both call the `onClose` closure → `schliesseLesemodus()` in `RoomViewModel.swift` (clears state + removes the orphaned `lese_` entity). The panel is mounted by `rootEntity`, not `ringEntity`, so it stays in world space regardless of ring rotation.
 
 ---
 
