@@ -133,7 +133,7 @@ struct GenericRoomView: View {
                 let expandedSpacing: Float = 0.30
                 let expandedCenterY: Float = 1.40
                 let expandedZ: Float = -1.55
-                let nExpandedTotal = breadcrumbPfad.count + 1 // +1 for home button at bottom
+                let nExpandedTotal = breadcrumbPfad.count + 2 // + Basis-Raum + Home-Button am Boden
                 let expandedTopY = expandedCenterY + Float(nExpandedTotal - 1) * expandedSpacing / 2.0
 
                 for (idx, thema) in breadcrumbPfad.enumerated() {
@@ -170,6 +170,36 @@ struct GenericRoomView: View {
                         )
                         panel.move(to: crumbTransform, relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
                     }
+                }
+
+                // === BASIS-RAUM-EINTRAG ===
+                // Sitzt nur im aufgeklappten Zustand zwischen der ältesten Vorfahren-Karte
+                // und dem Home-Button. Springt zurück ins Start-Karussell (fokusThema == nil).
+                // Im eingeklappten Zustand off-screen geparkt (wie der Home-Button).
+                if let basis = attachments.entity(for: "basis_crumb") {
+                    basis.name = "basis_crumb"
+
+                    if basis.components[InputTargetComponent.self] == nil {
+                        basis.components.set(InputTargetComponent(allowedInputTypes: .all))
+                        basis.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.1, 0.32, 0.05))]))
+                    }
+
+                    let basisY: Float = breadcrumbExpanded
+                        ? expandedTopY - Float(breadcrumbPfad.count) * expandedSpacing
+                        : -10
+                    let basisZ: Float = breadcrumbExpanded ? expandedZ : -2
+
+                    if basis.parent == nil {
+                        basis.position = SIMD3<Float>(0, basisY, basisZ)
+                        rootEntity.addChild(basis)
+                    }
+
+                    let basisTransform = Transform(
+                        scale: SIMD3<Float>(repeating: 1.0),
+                        rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
+                        translation: SIMD3<Float>(0, basisY, basisZ)
+                    )
+                    basis.move(to: basisTransform, relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
                 }
             }
 
@@ -235,7 +265,8 @@ struct GenericRoomView: View {
                             panel.transform = zielTransform
                         }
                         ringEntity.addChild(panel)
-                        let dur: Double = isRootLevel ? 0.5 : 0.55
+                        // Fokus-Karten fliegen etwas gemächlicher rein/raus (vorher 0.55).
+                        let dur: Double = isRootLevel ? 0.5 : 0.7
                         panel.move(to: zielTransform, relativeTo: ringEntity, duration: dur, timingFunction: .easeOut)
                         panel.components.set(RingPanelMarker(isFront: isFront))
                     } else if prevMarker?.isFront != isFront {
@@ -262,7 +293,7 @@ struct GenericRoomView: View {
                 if fokusThema == nil {
                     btnTarget = SIMD3<Float>(0, 1.1, -1.7)
                 } else if breadcrumbExpanded {
-                    let nExpandedTotal = pfad.count + 2 // breadcrumbs (fokus + ancestors) + home
+                    let nExpandedTotal = pfad.count + 3 // breadcrumbs (fokus + ancestors) + Basis-Raum + home
                     let expandedSpacing: Float = 0.30
                     let expandedCenterY: Float = 1.40
                     let expandedZ: Float = -1.55
@@ -296,6 +327,12 @@ struct GenericRoomView: View {
                             panelsEingeblendet: panelsEingeblendet
                         )
                     }
+                }
+                Attachment(id: "basis_crumb") {
+                    BasisRaumCrumbView(
+                        breadcrumbExpanded: breadcrumbExpanded,
+                        panelsEingeblendet: panelsEingeblendet
+                    )
                 }
             }
 

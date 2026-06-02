@@ -22,6 +22,13 @@ extension GenericRoomView {
                 // Schließen läuft über den ✕-Button bzw. den Hintergrund-Tap im
                 // LesePanelView (SwiftUI) → schliesseLesemodus().
 
+                if name == "basis_crumb" {
+                    // Direkt zurück ins Start-Karussell der aktuellen Kategorie.
+                    stopMomentum()
+                    Task { await zurueckZuBasis() }
+                    return
+                }
+
                 if name.hasPrefix("crumb_") {
                     let uuidString = String(name.dropFirst("crumb_".count))
                     let isFront = fokusThema?.id.uuidString == uuidString

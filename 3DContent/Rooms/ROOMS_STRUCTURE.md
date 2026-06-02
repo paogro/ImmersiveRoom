@@ -94,7 +94,7 @@ The `body` contains a single `RealityView` with three closures:
 
 | Value | Location | Meaning |
 |---|---|---|
-| `dur = isRootLevel ? 0.5 : 0.55` | update closure, new-panel branch | Fly-in slide duration; 0.55 s for focus-level cards, 0.5 s for root cards |
+| `dur = isRootLevel ? 0.5 : 0.7` | update closure, new-panel branch | Fly-in slide duration; 0.7 s for focus-level cards, 0.5 s for root cards |
 | `yOffset = navigiertTiefer ? 1.5 : -1.5` | update closure | Starting Y offset for fly-in: drops from above on forward nav, rises from below on back |
 | `0.25` | existing-panel branch | Duration when only the `isFront` scale state changes |
 

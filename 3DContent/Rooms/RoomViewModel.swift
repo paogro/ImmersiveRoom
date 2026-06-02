@@ -24,6 +24,8 @@ extension GenericRoomView {
 
         let staleRoot = rootEntity.children.filter { entity in
             if entity.name.hasPrefix("crumb_") { return !validCrumb.contains(entity.name) }
+            // Basis-Raum-Eintrag nur im Fokus-Modus behalten; im Karussell entfernen.
+            if entity.name == "basis_crumb" { return fokusThema == nil }
             return false
         }
         staleRoot.forEach { $0.removeFromParent() }
@@ -183,6 +185,30 @@ extension GenericRoomView {
             aktuellerIndex = 0
             status = "\(aktuelleThemen.count) Themen"
         }
+        animierePanels(skipBounce: true)
+    }
+
+    // Direkt zurück ins Start-Karussell (Basis-Raum / Übersicht) der gewählten
+    // Kategorie — egal wie tief man gerade steckt. Aufgerufen vom "Basis-Raum"-
+    // Eintrag im aufgeklappten Breadcrumb.
+    func zurueckZuBasis() async {
+        navigiertTiefer = false
+        breadcrumbExpanded = false
+        stopMomentum()
+        ringAngle = 0
+        ringVelocity = 0
+        pfad = []
+        fokusThema = nil
+        childrenThemen = []
+        aktuellerIndex = 0
+        if let rootId = appModel.ausgewaehltesThema?.id {
+            do {
+                aktuelleThemen = try await themenService.getUnterthemen(vonThemaId: rootId)
+            } catch {
+                status = "Fehler: \(error.localizedDescription)"
+            }
+        }
+        status = "\(aktuelleThemen.count) Themen"
         animierePanels(skipBounce: true)
     }
 
