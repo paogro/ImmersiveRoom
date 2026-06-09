@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `ImmersiveView.swift` — Router: switches on `appModel.ausgewaehltesThema.name` and passes the matching skybox texture name to `GenericRoomView`:
   - `"Sport"` → `GenericRoomView(skyboxTextureName: "sport_equirectangular")`
-  - `"Natur"` → `GenericRoomView(skyboxTextureName: "natur_equirectangular")`
+  - `"Natur"` → `GenericRoomView(skyboxTextureName: "nature_equirectangular")` (note: asset is spelled "nature" with an e)
   - `"Technik"` → `GenericRoomView(skyboxTextureName: "technik_equirectangular")`
   - `"Politik"` → `GenericRoomView(skyboxTextureName: "politik_equirectangular")`
   - Fallback: empty `FallbackRoomView`

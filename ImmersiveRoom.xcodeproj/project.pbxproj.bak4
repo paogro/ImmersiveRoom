@@ -1,0 +1,593 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91803402F8D2D5C00C330EE /* GenericRoomView.swift */; };
+		FE95209A2FBCA06E00F4302D /* RoomViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520942FBCA06E00F4302D /* RoomViewModel.swift */; };
+		FE95209B2FBCA06E00F4302D /* ZurueckButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */; };
+		FE95209C2FBCA06E00F4302D /* RoomGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520932FBCA06E00F4302D /* RoomGestures.swift */; };
+		FE95209D2FBCA06E00F4302D /* CrumbPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520952FBCA06E00F4302D /* CrumbPanelView.swift */; };
+		FE95209E2FBCA06E00F4302D /* ViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520912FBCA06E00F4302D /* ViewExtensions.swift */; };
+		FE95209F2FBCA06E00F4302D /* LesePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520962FBCA06E00F4302D /* LesePanelView.swift */; };
+		FE9520A02FBCA06E00F4302D /* ThemaPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */; };
+		FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */; };
+		FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00CC012F7C300000934D05 /* fussball_sound.m4a */; };
+		FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EC42F7C19D6000934D4 /* RealityKitContent */; };
+		FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */; };
+		FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE42F7C220C000934D4 /* AppConfig.swift */; };
+		FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE52F7C242F000934D4 /* Thema.swift */; };
+		FE00AA022F7C300000934D02 /* NewsArtikel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00AA012F7C300000934D01 /* NewsArtikel.swift */; };
+		FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE72F7C2482000934D4 /* ThemenService.swift */; };
+		FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */; };
+		FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */; };
+		FE00BB022F7C300000934D04 /* QuelleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE00BB012F7C300000934D03 /* QuelleWebView.swift */; };
+		FEAB2EF02F7C28FA000934D4 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EEF2F7C28FA000934D4 /* Auth */; };
+		FEAB2EF22F7C28FA000934D4 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF12F7C28FA000934D4 /* Functions */; };
+		FEAB2EF42F7C28FA000934D4 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF32F7C28FA000934D4 /* PostgREST */; };
+		FEAB2EF62F7C28FA000934D4 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF52F7C28FA000934D4 /* Realtime */; };
+		FEAB2EF82F7C28FA000934D4 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF72F7C28FA000934D4 /* Storage */; };
+		FEAB2EFB2F7C2B24000934D4 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EFA2F7C2B24000934D4 /* Supabase */; };
+		FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */; };
+		FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B91803402F8D2D5C00C330EE /* GenericRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericRoomView.swift; sourceTree = "<group>"; };
+		FE9520912FBCA06E00F4302D /* ViewExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtensions.swift; sourceTree = "<group>"; };
+		FE9520932FBCA06E00F4302D /* RoomGestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomGestures.swift; sourceTree = "<group>"; };
+		FE9520942FBCA06E00F4302D /* RoomViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomViewModel.swift; sourceTree = "<group>"; };
+		FE9520952FBCA06E00F4302D /* CrumbPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrumbPanelView.swift; sourceTree = "<group>"; };
+		FE9520962FBCA06E00F4302D /* LesePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LesePanelView.swift; sourceTree = "<group>"; };
+		FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemaPanelView.swift; sourceTree = "<group>"; };
+		FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZurueckButtonView.swift; sourceTree = "<group>"; };
+		FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ROOMS_STRUCTURE.md; sourceTree = "<group>"; };
+		FE00CC012F7C300000934D05 /* fussball_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = fussball_sound.m4a; sourceTree = "<group>"; };
+		FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImmersiveRoom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEAB2EC32F7C19D6000934D4 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRoomApp.swift; sourceTree = "<group>"; };
+		FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
+		FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FE00BB012F7C300000934D03 /* QuelleWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuelleWebView.swift; sourceTree = "<group>"; };
+		FEAB2EE42F7C220C000934D4 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		FEAB2EE52F7C242F000934D4 /* Thema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thema.swift; sourceTree = "<group>"; };
+		FE00AA012F7C300000934D01 /* NewsArtikel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsArtikel.swift; sourceTree = "<group>"; };
+		FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
+		FEAB2EE72F7C2482000934D4 /* ThemenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemenService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FEAB2ECF2F7C19D7000934D4 /* Exceptions for "ImmersiveRoom" folder in "ImmersiveRoom" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FEAB2EBE2F7C19D6000934D4 /* ImmersiveRoom */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		FEAB2EC12F7C19D6000934D4 /* ImmersiveRoom */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FEAB2ECF2F7C19D7000934D4 /* Exceptions for "ImmersiveRoom" folder in "ImmersiveRoom" target */,
+			);
+			path = ImmersiveRoom;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FEAB2EBC2F7C19D6000934D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEAB2EFB2F7C2B24000934D4 /* Supabase in Frameworks */,
+				FEAB2EF82F7C28FA000934D4 /* Storage in Frameworks */,
+				FEAB2EF42F7C28FA000934D4 /* PostgREST in Frameworks */,
+				FEAB2EF22F7C28FA000934D4 /* Functions in Frameworks */,
+				FEAB2EF02F7C28FA000934D4 /* Auth in Frameworks */,
+				FEAB2EF62F7C28FA000934D4 /* Realtime in Frameworks */,
+				FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FE9520922FBCA06E00F4302D /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				FE9520912FBCA06E00F4302D /* ViewExtensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		FE9520992FBCA06E00F4302D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FE9520952FBCA06E00F4302D /* CrumbPanelView.swift */,
+				FE9520962FBCA06E00F4302D /* LesePanelView.swift */,
+				FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */,
+				FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FE994A202F866AFF00646F26 /* Rooms */ = {
+			isa = PBXGroup;
+			children = (
+				B91803402F8D2D5C00C330EE /* GenericRoomView.swift */,
+				FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */,
+				FE9520922FBCA06E00F4302D /* Extensions */,
+				FE9520932FBCA06E00F4302D /* RoomGestures.swift */,
+				FE9520942FBCA06E00F4302D /* RoomViewModel.swift */,
+				FE9520992FBCA06E00F4302D /* Views */,
+			);
+			path = Rooms;
+			sourceTree = "<group>";
+		};
+		FEAB2EB62F7C19D6000934D4 = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EDF2F7C1CFD000934D4 /* Resources */,
+				FEAB2EDE2F7C1CF2000934D4 /* 3DContent */,
+				FEAB2EDD2F7C1CEA000934D4 /* Views */,
+				FEAB2EDC2F7C1CE3000934D4 /* Services */,
+				FEAB2EDB2F7C1CDC000934D4 /* Models */,
+				FEAB2EDA2F7C1CD5000934D4 /* Spaces */,
+				FEAB2ED92F7C1CCB000934D4 /* App */,
+				FEAB2EC12F7C19D6000934D4 /* ImmersiveRoom */,
+				FEAB2EC22F7C19D6000934D4 /* Packages */,
+				FEAB2EF92F7C2B24000934D4 /* Frameworks */,
+				FEAB2EC02F7C19D6000934D4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FEAB2EC02F7C19D6000934D4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FEAB2EC22F7C19D6000934D4 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EC32F7C19D6000934D4 /* RealityKitContent */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		FEAB2ED92F7C1CCB000934D4 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE42F7C220C000934D4 /* AppConfig.swift */,
+				FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FEAB2EDA2F7C1CD5000934D4 /* Spaces */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Spaces;
+			sourceTree = "<group>";
+		};
+		FEAB2EDB2F7C1CDC000934D4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE52F7C242F000934D4 /* Thema.swift */,
+				FE00AA012F7C300000934D01 /* NewsArtikel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FEAB2EDC2F7C1CE3000934D4 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE72F7C2482000934D4 /* ThemenService.swift */,
+				FEAB2EE62F7C245E000934D4 /* SupabaseClient.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		FEAB2EDD2F7C1CEA000934D4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FEAB2EE32F7C1DA2000934D4 /* ContentView.swift */,
+				FE00BB012F7C300000934D03 /* QuelleWebView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FEAB2EDE2F7C1CF2000934D4 /* 3DContent */ = {
+			isa = PBXGroup;
+			children = (
+				FE994A202F866AFF00646F26 /* Rooms */,
+				FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */,
+			);
+			path = 3DContent;
+			sourceTree = "<group>";
+		};
+		FEAB2EDF2F7C1CFD000934D4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FE00CC012F7C300000934D05 /* fussball_sound.m4a */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		FEAB2EF92F7C2B24000934D4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FEAB2EBE2F7C19D6000934D4 /* ImmersiveRoom */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEAB2ED02F7C19D7000934D4 /* Build configuration list for PBXNativeTarget "ImmersiveRoom" */;
+			buildPhases = (
+				FEAB2EBB2F7C19D6000934D4 /* Sources */,
+				FEAB2EBC2F7C19D6000934D4 /* Frameworks */,
+				FEAB2EBD2F7C19D6000934D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FEAB2EC12F7C19D6000934D4 /* ImmersiveRoom */,
+			);
+			name = ImmersiveRoom;
+			packageProductDependencies = (
+				FEAB2EC42F7C19D6000934D4 /* RealityKitContent */,
+				FEAB2EEF2F7C28FA000934D4 /* Auth */,
+				FEAB2EF12F7C28FA000934D4 /* Functions */,
+				FEAB2EF32F7C28FA000934D4 /* PostgREST */,
+				FEAB2EF52F7C28FA000934D4 /* Realtime */,
+				FEAB2EF72F7C28FA000934D4 /* Storage */,
+				FEAB2EFA2F7C2B24000934D4 /* Supabase */,
+			);
+			productName = ImmersiveRoom;
+			productReference = FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FEAB2EB72F7C19D6000934D4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					FEAB2EBE2F7C19D6000934D4 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+				};
+			};
+			buildConfigurationList = FEAB2EBA2F7C19D6000934D4 /* Build configuration list for PBXProject "ImmersiveRoom" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FEAB2EB62F7C19D6000934D4;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FEAB2EC02F7C19D6000934D4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FEAB2EBE2F7C19D6000934D4 /* ImmersiveRoom */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FEAB2EBD2F7C19D6000934D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */,
+				FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FEAB2EBB2F7C19D6000934D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */,
+				FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */,
+				FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */,
+				FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */,
+				FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */,
+				FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */,
+				FE00BB022F7C300000934D04 /* QuelleWebView.swift in Sources */,
+				FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */,
+				FE95209A2FBCA06E00F4302D /* RoomViewModel.swift in Sources */,
+				FE95209B2FBCA06E00F4302D /* ZurueckButtonView.swift in Sources */,
+				FE95209C2FBCA06E00F4302D /* RoomGestures.swift in Sources */,
+				FE95209D2FBCA06E00F4302D /* CrumbPanelView.swift in Sources */,
+				FE95209E2FBCA06E00F4302D /* ViewExtensions.swift in Sources */,
+				FE95209F2FBCA06E00F4302D /* LesePanelView.swift in Sources */,
+				FE9520A02FBCA06E00F4302D /* ThemaPanelView.swift in Sources */,
+				FEAB2EEB2F7C281A000934D4 /* Thema.swift in Sources */,
+				FE00AA022F7C300000934D02 /* NewsArtikel.swift in Sources */,
+				FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		FEAB2ED12F7C19D7000934D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2AKTW6TUW8;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.th-nuernberg.efi.ImmersiveRoom";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+			};
+			name = Debug;
+		};
+		FEAB2ED22F7C19D7000934D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2AKTW6TUW8;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.th-nuernberg.efi.ImmersiveRoom";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+			};
+			name = Release;
+		};
+		FEAB2ED32F7C19D7000934D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = xros;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		FEAB2ED42F7C19D7000934D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = xros;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FEAB2EBA2F7C19D6000934D4 /* Build configuration list for PBXProject "ImmersiveRoom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FEAB2ED32F7C19D7000934D4 /* Debug */,
+				FEAB2ED42F7C19D7000934D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FEAB2ED02F7C19D7000934D4 /* Build configuration list for PBXNativeTarget "ImmersiveRoom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FEAB2ED12F7C19D7000934D4 /* Debug */,
+				FEAB2ED22F7C19D7000934D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FEAB2EC42F7C19D6000934D4 /* RealityKitContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RealityKitContent;
+		};
+		FEAB2EEF2F7C28FA000934D4 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		FEAB2EF12F7C28FA000934D4 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		FEAB2EF32F7C28FA000934D4 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		FEAB2EF52F7C28FA000934D4 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		FEAB2EF72F7C28FA000934D4 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		FEAB2EFA2F7C2B24000934D4 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEAB2EE82F7C2500000934D4 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FEAB2EB72F7C19D6000934D4 /* Project object */;
+}

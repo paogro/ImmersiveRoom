@@ -5,19 +5,29 @@ struct CrumbPanelView: View {
     let isFront: Bool
     let breadcrumbExpanded: Bool
     let panelsEingeblendet: Bool
+    let frontName: String   // Name der vordersten Karte — gibt eingeklappt die einheitliche Breite vor
 
     var body: some View {
         let textVisible = isFront || breadcrumbExpanded
-        HStack(spacing: 14) {
-            Text(thema.name)
-                .font(.title).fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
-                .opacity(textVisible ? 1 : 0)
+        ZStack {
+            // Eingeklappt: unsichtbarer Sizing-Text mit dem Namen der vordersten Karte.
+            // Dadurch werden ALLE Stapel-Pillen exakt so breit wie die vorderste Karte.
+            // Aufgeklappt entfällt das → jede Karte hat dann ihre eigene (volle) Breite.
+            if !breadcrumbExpanded {
+                Text(frontName)
+                    .font(.title).fontWeight(.semibold)
+                    .opacity(0)
+            }
+            if textVisible {
+                Text(thema.name)
+                    .font(.title).fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.9), radius: 3, x: 0, y: 1)
+            }
         }
-        .animation(.easeInOut(duration: 0.3), value: textVisible)
         .padding(.horizontal, 40)
         .padding(.vertical, 22)
+        .animation(.easeInOut(duration: 0.3), value: textVisible)
         .background {
             ZStack {
                 // Solid-ish frosted pill: dark enough to stay clearly readable against any
@@ -38,7 +48,7 @@ struct CrumbPanelView: View {
             }
         }
         .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-        .roundedGazeHover(cornerRadius: 28)
+        // Gaze-Feedback kommt als weißer Entity-Spotlight (GenericRoomView), nicht per SwiftUI-Hover.
         .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
         .opacity(panelsEingeblendet ? 1.0 : 0.0)
         .animation(.spring(response: 0.45, dampingFraction: 0.8), value: panelsEingeblendet)
@@ -85,7 +95,7 @@ struct BasisRaumCrumbView: View {
             }
         }
         .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
-        .roundedGazeHover(cornerRadius: 28)
+        // Gaze-Feedback kommt als weißer Entity-Spotlight (GenericRoomView), nicht per SwiftUI-Hover.
         .scaleEffect(panelsEingeblendet ? 1.0 : 0.85)
         .opacity(panelsEingeblendet ? 1.0 : 0.0)
         .animation(.spring(response: 0.45, dampingFraction: 0.8), value: panelsEingeblendet)

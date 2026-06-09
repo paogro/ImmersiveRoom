@@ -141,7 +141,7 @@ Back to previous level or root
 
 | Property | Gesture type | Trigger | Action |
 |---|---|---|---|
-| `tapGesture` | `SpatialTapGesture` | Quick tap on any entity | Routes by entity name prefix (`crumb_`, `thema_`, `child_`) to the right navigation call. Note: the lese panel is **not** handled here — it has no input target; closing is done in SwiftUI via `onClose`. |
+| `tapGesture` | `SpatialTapGesture` | Quick tap on any entity | Routes by entity name prefix (`crumb_`, `thema_`, `child_`, `basis_crumb`) to the right navigation call. Note: the lese panel is **not** handled here — it has no input target; closing is done in SwiftUI via `onClose`. |
 | `swipeGesture` | `DragGesture(minimumDistance: 10)` | Horizontal drag anywhere in scene | Rotates `ringEntity` around Y axis in real time; on release, calls `starteMomentum()` |
 | `holdGesture` | `DragGesture(minimumDistance: 0)` | Touch + hold for 450 ms without moving >4 cm | Fires `loeseLeseModusAus()` to open Lesemodus; sets `holdTriggered` to suppress the co-firing tap |
 | `zoomGesture` | `MagnifyGesture` | Pinch | Scales the entire scene via `baumScale` (clamped 0.4–2.5×) |

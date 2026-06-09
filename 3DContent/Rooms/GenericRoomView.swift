@@ -1,9 +1,12 @@
 import SwiftUI
 import RealityKit
 import RealityKitContent
+import ARKit
 
 struct GenericRoomView: View {
     let skyboxTextureName: String
+    var ambientSoundName: String? = nil   // optionaler Raum-Loop (Bundle-Resource ohne Endung), nil = stumm
+    var skyboxDrehungGrad: Float = 0      // Y-Drehung der Skybox in Grad: legt fest, welcher Bildausschnitt beim Start vorne liegt
 
     @Environment(AppModel.self) var appModel
     @Environment(\.openWindow) var openWindow 
@@ -47,7 +50,21 @@ struct GenericRoomView: View {
     @State var ringInteracting: Bool = false        // suppresses update-closure rotation while drag/momentum drives ringEntity directly
     @State var momentumTask: Task<Void, Never>? = nil
 
+    @State var audioController: AudioPlaybackController? = nil   // laufender Raum-Loop, zum Stoppen beim Verlassen
+
+    // Kopf-/Geräte-Tracking (ARKit) — liefert die Kopfausrichtung, um die UI bei jedem
+    // Neu-Laden einmalig zur aktuellen Blickrichtung des Nutzers auszurichten.
+    @State var arkitSession = ARKitSession()
+    @State var worldTracking = WorldTrackingProvider()
+
+    // Navigations-Verlauf: pro Ring (Schlüssel = parent-Topic-ID) die zuletzt vorne
+    // stehende Karte. Wird bei Vor-/Zurück-/Sprung-Navigation und beim Blättern
+    // gepflegt und beim Betreten eines Rings zum Zentrieren genutzt. Reiner
+    // Session-State → bei Raum-/App-Neustart leer (ladeErsteEbene räumt auf).
+    @State var besuchtePosition: [UUID: UUID] = [:]
+
     let themenService = ThemenService()
+    let ringMaxStep: Float = 0.6                   // max. Winkelabstand pro Karte (rad ~34°). Wenige Karten → Frontal-Fächer statt Vollkreis.
     let ringDragSensitivity: Float = 2.5           // radians of ring rotation per metre of horizontal hand drag (scene space)
     let ringMomentumDamping: Float = 0.5           // velocity multiplier per ~16ms tick during glide
     let ringMomentumMinSpeed: Float = 2.5          // rad/s below which momentum gives up and snaps
@@ -56,12 +73,25 @@ struct GenericRoomView: View {
         fokusThema == nil
     }
 
+    // Parent-Topic des aktuell sichtbaren Rings: im Fokus-Modus das fokussierte
+    // Thema, im Wurzel-Karussell die gewählte Hauptkategorie.
+    var aktuellerRingParentId: UUID? {
+        fokusThema?.id ?? appModel.ausgewaehltesThema?.id
+    }
+
     var sichtbareThemen: [Thema] {
         if fokusThema != nil {
             return childrenThemen
         } else {
             return aktuelleThemen
         }
+    }
+
+    // Winkelabstand pro Karte: voller Kreis durch Anzahl, aber gedeckelt auf ringMaxStep.
+    // Dadurch fächern wenige Karten frontal vor dem Nutzer auf, statt sich um ihn zu legen.
+    // Alle Ring-Funktionen (Layout, Front-Index, Snap, Zentrieren) nutzen diesen Wert.
+    var ringWinkelSchritt: Float {
+        min(2 * .pi / Float(max(sichtbareThemen.count, 1)), ringMaxStep)
     }
 
     var body: some View {
@@ -76,6 +106,8 @@ struct GenericRoomView: View {
                 materials: [skyboxMaterial]
             )
             skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
+            // Skybox um Y drehen, damit beim Start ein bestimmter Bildausschnitt vorne liegt.
+            skybox.orientation = simd_quatf(angle: skyboxDrehungGrad * .pi / 180, axis: [0, 1, 0])
             content.add(skybox)
 
             rootEntity.position = .zero
@@ -94,7 +126,31 @@ struct GenericRoomView: View {
             if let zurueck = attachments.entity(for: "zurueck") {
                 zurueck.name = "zurueck_btn"
                 zurueck.position = SIMD3<Float>(0, -10, -2)
+                // Entity-Tap + weißer Gaze-Spotlight (wie die Karten, aber weiß).
+                zurueck.components.set(InputTargetComponent(allowedInputTypes: .all))
+                zurueck.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.6, 0.34, 0.05))]))
+                zurueck.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
                 rootEntity.addChild(zurueck)
+            }
+
+            // --- Raum-Atmosphäre (Loop) ---
+            // Lädt den optionalen Ambient-Sound aus dem App-Bundle und spielt ihn
+            // als raumfüllende Schleife. AmbientAudioComponent = nicht ortsgebunden,
+            // umhüllt den Nutzer (passt zur Stadion-Atmo). Stop in .onDisappear.
+            if let soundName = ambientSoundName,
+               let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") {
+                do {
+                    let resource = try await AudioFileResource(
+                        contentsOf: url,
+                        configuration: .init(shouldLoop: true)
+                    )
+                    let audioEntity = Entity()
+                    audioEntity.components.set(AmbientAudioComponent())
+                    rootEntity.addChild(audioEntity)
+                    audioController = audioEntity.playAudio(resource)
+                } catch {
+                    print("Ambient-Sound konnte nicht geladen werden: \(error)")
+                }
             }
 
         } update: { content, attachments in
@@ -130,7 +186,8 @@ struct GenericRoomView: View {
 
                 // Expanded: vertical list pulled into the user's direct forward view, vertically
                 // centered around eye level so the whole stack sits "in your face".
-                let expandedSpacing: Float = 0.30
+                let expandedSpacing: Float = 0.22   // enger gepackt (vorher 0.30)
+                let expandedScale: Float = 1.2       // aufgeklappte Pillen etwas größer (vorher 1.0)
                 let expandedCenterY: Float = 1.40
                 let expandedZ: Float = -1.55
                 let nExpandedTotal = breadcrumbPfad.count + 2 // + Basis-Raum + Home-Button am Boden
@@ -145,6 +202,7 @@ struct GenericRoomView: View {
                         if panel.components[InputTargetComponent.self] == nil {
                             panel.components.set(InputTargetComponent(allowedInputTypes: .all))
                             panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.1, 0.32, 0.05))]))
+                            panel.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
                         }
 
                         let targetY: Float
@@ -163,12 +221,15 @@ struct GenericRoomView: View {
                             rootEntity.addChild(panel)
                         }
 
+                        // Eingeklappt: sauberer Größenverlauf nach Tiefe (vorne am größten,
+                        // jede dahinter etwas kleiner) — unabhängig von der Kartenbreite.
+                        let collapsedScale = max(0.78, 1.0 - Float(idx) * 0.08)
                         let crumbTransform = Transform(
-                            scale: SIMD3<Float>(repeating: 1.0),
+                            scale: SIMD3<Float>(repeating: breadcrumbExpanded ? expandedScale : collapsedScale),
                             rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
                             translation: SIMD3<Float>(0, targetY, targetZ)
                         )
-                        panel.move(to: crumbTransform, relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
+                        panel.move(to: crumbTransform, relativeTo: rootEntity, duration: 0.4, timingFunction: .easeInOut)
                     }
                 }
 
@@ -182,6 +243,7 @@ struct GenericRoomView: View {
                     if basis.components[InputTargetComponent.self] == nil {
                         basis.components.set(InputTargetComponent(allowedInputTypes: .all))
                         basis.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(1.1, 0.32, 0.05))]))
+                        basis.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
                     }
 
                     let basisY: Float = breadcrumbExpanded
@@ -195,11 +257,11 @@ struct GenericRoomView: View {
                     }
 
                     let basisTransform = Transform(
-                        scale: SIMD3<Float>(repeating: 1.0),
+                        scale: SIMD3<Float>(repeating: breadcrumbExpanded ? expandedScale : 1.0),
                         rotation: simd_quatf(angle: 0, axis: [0, 1, 0]),
                         translation: SIMD3<Float>(0, basisY, basisZ)
                     )
-                    basis.move(to: basisTransform, relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
+                    basis.move(to: basisTransform, relativeTo: rootEntity, duration: 0.4, timingFunction: .easeInOut)
                 }
             }
 
@@ -208,8 +270,7 @@ struct GenericRoomView: View {
             // Drehen wir ringEntity um Y, rotieren alle Karten als geschlossener Ring mit —
             // wie ein Zahnrad. Frontposition in der Welt ist die Karte, deren lokaler Winkel
             // gerade ringAngle entspricht; ihr Index wird in aktuellerIndex gehalten.
-            let nCardsLayout = max(sichtbareThemen.count, 1)
-            let angleStepLayout: Float = 2 * Float.pi / Float(nCardsLayout)
+            let angleStepLayout: Float = ringWinkelSchritt
             let radiusLayout: Float = 2.5
             let cardYLayout: Float = 1.5
 
@@ -224,15 +285,10 @@ struct GenericRoomView: View {
                     if panel.components[InputTargetComponent.self] == nil {
                         panel.components.set(InputTargetComponent(allowedInputTypes: .all))
                         panel.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3<Float>(0.95, 0.35, 0.05))]))
-                        // Root cards get a blue spotlight effect that follows the
-                        // user's gaze across the surface. Children keep the default
-                        // subtle highlight. Both are entity-level system effects —
-                        // visionOS does not expose gaze position to the app.
-                        if fokusThema == nil {
-                            panel.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: 20.0))))
-                        } else {
-                            panel.components.set(HoverEffectComponent())
-                        }
+                        // Blauer Gaze-Spotlight für beide; bei den Children etwas dezenter
+                        // (geringere strength) als bei den Wurzel-Karten.
+                        let spotStrength: Float = fokusThema == nil ? 20.0 : 10.0
+                        panel.components.set(HoverEffectComponent(.spotlight(.init(color: .systemBlue, strength: spotStrength))))
                     }
 
                     let theta = Float(index) * angleStepLayout
@@ -252,9 +308,12 @@ struct GenericRoomView: View {
                     )
 
                     if panel.parent == nil {
-                        // Fly-in: focus levels drop in vertically; root cards just pop via the
-                        // SwiftUI panelsEingeblendet scale spring.
-                        if !isRootLevel {
+                        // Fly-in: Fokus-Ebenen fliegen vertikal rein. Beim Zurück/Überspringen
+                        // (navigiertTiefer == false) fliegen ALLE neuen Karten von unten rein —
+                        // auch das Wurzel-Karussell, damit jeder Zurück-Schritt gleich aussieht.
+                        // Nur beim Vorwärts-Eintritt ins Wurzel-Karussell "poppen" die Karten.
+                        let kommtVonUnten = !navigiertTiefer
+                        if !isRootLevel || kommtVonUnten {
                             let yOffset: Float = navigiertTiefer ? 1.5 : -1.5
                             panel.transform = Transform(
                                 scale: SIMD3<Float>(repeating: zielScale),
@@ -265,8 +324,9 @@ struct GenericRoomView: View {
                             panel.transform = zielTransform
                         }
                         ringEntity.addChild(panel)
-                        // Fokus-Karten fliegen etwas gemächlicher rein/raus (vorher 0.55).
-                        let dur: Double = isRootLevel ? 0.5 : 0.7
+                        // Vertikaler Einflug (Fokus oder Zurück) gemächlicher als das reine
+                        // Root-"Poppen" beim Vorwärts-Eintritt.
+                        let dur: Double = (!isRootLevel || kommtVonUnten) ? 0.7 : 0.5
                         panel.move(to: zielTransform, relativeTo: ringEntity, duration: dur, timingFunction: .easeOut)
                         panel.components.set(RingPanelMarker(isFront: isFront))
                     } else if prevMarker?.isFront != isFront {
@@ -294,7 +354,7 @@ struct GenericRoomView: View {
                     btnTarget = SIMD3<Float>(0, 1.1, -1.7)
                 } else if breadcrumbExpanded {
                     let nExpandedTotal = pfad.count + 3 // breadcrumbs (fokus + ancestors) + Basis-Raum + home
-                    let expandedSpacing: Float = 0.30
+                    let expandedSpacing: Float = 0.22
                     let expandedCenterY: Float = 1.40
                     let expandedZ: Float = -1.55
                     let bottomY = expandedCenterY - Float(nExpandedTotal - 1) * expandedSpacing / 2.0
@@ -302,7 +362,7 @@ struct GenericRoomView: View {
                 } else {
                     btnTarget = SIMD3<Float>(0, -10, -2)
                 }
-                zuBtn.move(to: Transform(translation: btnTarget), relativeTo: nil, duration: 0.4, timingFunction: .easeInOut)
+                zuBtn.move(to: Transform(translation: btnTarget), relativeTo: rootEntity, duration: 0.4, timingFunction: .easeInOut)
             }
 
             rootEntity.scale = SIMD3<Float>(repeating: baumScale)
@@ -324,7 +384,8 @@ struct GenericRoomView: View {
                             thema: thema,
                             isFront: thema.id == fokus.id,
                             breadcrumbExpanded: breadcrumbExpanded,
-                            panelsEingeblendet: panelsEingeblendet
+                            panelsEingeblendet: panelsEingeblendet,
+                            frontName: fokus.name
                         )
                     }
                 }
@@ -365,6 +426,12 @@ struct GenericRoomView: View {
         .gesture(holdGesture)
         .gesture(zoomGesture)
         .task { await ladeErsteEbene() }
+        .task {
+            // Kopf-Tracking starten, damit richteAufKopfrichtungAus() die aktuelle
+            // Blickrichtung abfragen kann.
+            try? await arkitSession.run([worldTracking])
+        }
+        .onDisappear { audioController?.stop() }
     }
 
     // MARK: - Panel View Factory

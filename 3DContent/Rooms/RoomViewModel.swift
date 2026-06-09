@@ -1,11 +1,32 @@
 import SwiftUI
 import RealityKit
+import ARKit
+import QuartzCore
 
 extension GenericRoomView {
+
+    // MARK: - Ausrichtung
+
+    /// Richtet die gesamte UI (rootEntity) einmalig zur aktuellen Kopf-/Blickrichtung
+    /// des Nutzers aus. Wird bei jedem Neu-Laden aufgerufen, damit Ring, Breadcrumb und
+    /// Home-Button vor dem Nutzer erscheinen, egal wohin er sich gedreht hat. Nur Yaw
+    /// (horizontal), hart gesetzt — kein Live-Following. Tut nichts, wenn noch keine
+    /// Kopfpose verfügbar ist (z. B. ganz am Anfang).
+    func richteAufKopfrichtungAus() {
+        guard worldTracking.state == .running,
+              let anchor = worldTracking.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())
+        else { return }
+        let m = anchor.originFromAnchorTransform
+        let yaw = atan2(m.columns.2.x, m.columns.2.z)
+        rootEntity.orientation = simd_quatf(angle: yaw, axis: [0, 1, 0])
+    }
 
     // MARK: - Animation
 
     func animierePanels(skipBounce: Bool = false) {
+        // Bei jedem (Neu-)Laden die UI zur aktuellen Kopfrichtung ausrichten.
+        richteAufKopfrichtungAus()
+
         // Only remove entities that no longer belong in the new state. Persisting entities
         // stay parented so they don't re-mount and re-trigger their initial-offset move(to:),
         // which would double up on the move triggered by the state change itself.
@@ -58,6 +79,7 @@ extension GenericRoomView {
     /// erscheint sofort (mit Lade-Indikator); der Inhalt wird asynchron
     /// nachgereicht, sobald die DB-Antwort da ist.
     func oeffneLesemodus(fuer thema: Thema) async {
+        richteAufKopfrichtungAus()   // Lesepanel ebenfalls zur aktuellen Blickrichtung
         leseThema = thema
         leseArtikel = nil
         leseLaedt = true
@@ -98,7 +120,9 @@ extension GenericRoomView {
         stopMomentum()
         ringAngle = 0
         ringVelocity = 0
+        besuchtePosition = [:]   // Navigations-Verlauf beim (Neu-)Betreten des Raums vergessen
         await ladeChildren(vonThemaId: thema.id)
+        zentriereRingAuf(themaId: nil, in: aktuelleThemen)   // mittlere Karte zentrieren (Fächer)
         animierePanels()
     }
 
@@ -121,14 +145,18 @@ extension GenericRoomView {
                 await oeffneLesemodus(fuer: thema)
                 return
             }
+            // Gewählte Wurzel-Karte für das Wurzel-Karussell merken.
+            if let rootId = appModel.ausgewaehltesThema?.id {
+                besuchtePosition[rootId] = thema.id
+            }
             navigiertTiefer = true
             fokusThema = thema
             childrenThemen = children
             breadcrumbExpanded = false
-            aktuellerIndex = 0
             stopMomentum()
-            ringAngle = 0
             ringVelocity = 0
+            // Neuen Ring auf die zuletzt dort besuchte Karte zentrieren (sonst Index 0).
+            zentriereAufGemerkt(parentId: thema.id, in: children)
             status = "\(children.count) Unterthemen"
             animierePanels()
         } catch {
@@ -144,16 +172,20 @@ extension GenericRoomView {
                 await oeffneLesemodus(fuer: thema)
                 return
             }
-            if let fokus = fokusThema { pfad.append(fokus) }
+            // Gewählte Karte für den aktuellen (verlassenen) Ring merken.
+            if let fokus = fokusThema {
+                besuchtePosition[fokus.id] = thema.id
+                pfad.append(fokus)
+            }
             aktuelleThemen = childrenThemen
             navigiertTiefer = true
             fokusThema = thema
             childrenThemen = children
             breadcrumbExpanded = false
-            aktuellerIndex = 0
             stopMomentum()
-            ringAngle = 0
             ringVelocity = 0
+            // Neuen Ring auf die zuletzt dort besuchte Karte zentrieren (sonst Index 0).
+            zentriereAufGemerkt(parentId: thema.id, in: children)
             status = "\(children.count) Unterthemen"
             animierePanels()
         } catch {
@@ -161,11 +193,43 @@ extension GenericRoomView {
         }
     }
 
+    // Dreht den Ring so, dass die zuvor besuchte Karte wieder vorne steht
+    // (Navigations-Verlauf innerhalb der Session). Fällt auf Index 0 zurück,
+    // wenn die ID nicht in der Liste vorkommt. Beim Neustart ist alles wieder
+    // auf 0, da es reiner In-Memory-State ist.
+    // Merkt sich die aktuell vorne stehende Karte für den aktuellen Ring.
+    func merkeAktuelleKarte() {
+        guard let parent = aktuellerRingParentId else { return }
+        let liste = sichtbareThemen
+        guard !liste.isEmpty, aktuellerIndex >= 0, aktuellerIndex < liste.count else { return }
+        besuchtePosition[parent] = liste[aktuellerIndex].id
+    }
+
+    // Zentriert den Ring auf die für diesen Parent gemerkte Karte (falls vorhanden).
+    func zentriereAufGemerkt(parentId: UUID?, in liste: [Thema]) {
+        let merkId = parentId.flatMap { besuchtePosition[$0] }
+        zentriereRingAuf(themaId: merkId, in: liste)
+    }
+
+    func zentriereRingAuf(themaId: UUID?, in liste: [Thema]) {
+        let n = max(liste.count, 1)
+        let step = min(2 * Float.pi / Float(n), ringMaxStep)
+        if let themaId, !liste.isEmpty,
+           let idx = liste.firstIndex(where: { $0.id == themaId }) {
+            aktuellerIndex = idx
+            ringAngle = Float(idx) * step
+        } else {
+            // Kein gemerkter Eintrag → mittlere Karte zentrieren, damit der Fächer
+            // symmetrisch vor dem Nutzer liegt (links / mittig / rechts).
+            aktuellerIndex = liste.isEmpty ? 0 : (n - 1) / 2
+            ringAngle = Float(aktuellerIndex) * step
+        }
+    }
+
     func zurueckEineEbene() async {
         navigiertTiefer = false
         breadcrumbExpanded = false
         stopMomentum()
-        ringAngle = 0
         ringVelocity = 0
         if let letztesImPfad = pfad.last {
             pfad.removeLast()
@@ -179,11 +243,13 @@ extension GenericRoomView {
                     status = "Fehler: \(error.localizedDescription)"
                 }
             }
+            // Ring der Zielebene auf die dort zuletzt besuchte Karte zentrieren.
+            zentriereAufGemerkt(parentId: letztesImPfad.id, in: childrenThemen)
         } else {
             fokusThema = nil
             childrenThemen = []
-            aktuellerIndex = 0
             status = "\(aktuelleThemen.count) Themen"
+            zentriereAufGemerkt(parentId: appModel.ausgewaehltesThema?.id, in: aktuelleThemen)
         }
         animierePanels(skipBounce: true)
     }
@@ -195,12 +261,10 @@ extension GenericRoomView {
         navigiertTiefer = false
         breadcrumbExpanded = false
         stopMomentum()
-        ringAngle = 0
         ringVelocity = 0
         pfad = []
         fokusThema = nil
         childrenThemen = []
-        aktuellerIndex = 0
         if let rootId = appModel.ausgewaehltesThema?.id {
             do {
                 aktuelleThemen = try await themenService.getUnterthemen(vonThemaId: rootId)
@@ -208,6 +272,8 @@ extension GenericRoomView {
                 status = "Fehler: \(error.localizedDescription)"
             }
         }
+        // Wurzel-Karussell auf die zuletzt besuchte Top-Kategorie zentrieren.
+        zentriereAufGemerkt(parentId: appModel.ausgewaehltesThema?.id, in: aktuelleThemen)
         status = "\(aktuelleThemen.count) Themen"
         animierePanels(skipBounce: true)
     }
@@ -217,13 +283,15 @@ extension GenericRoomView {
         let vollPfad = pfad + [fokus]
         guard let idx = vollPfad.firstIndex(where: { $0.id == thema.id }) else { return }
 
+        // Das Pfad-Element direkt unter dem Ziel-Vorfahren = die Karte, in der wir
+        // zuletzt waren; auf die wird nach dem Zurückspringen zentriert.
+        let zielKindId: UUID? = (idx + 1 < vollPfad.count) ? vollPfad[idx + 1].id : nil
+
         pfad = Array(vollPfad[0..<idx])
         fokusThema = thema
         navigiertTiefer = false
         breadcrumbExpanded = false
-        aktuellerIndex = 0
         stopMomentum()
-        ringAngle = 0
         ringVelocity = 0
 
         do {
@@ -237,6 +305,9 @@ extension GenericRoomView {
             status = "Fehler: \(error.localizedDescription)"
         }
 
+        // Bevorzugt die gemerkte Position dieses Rings; sonst das Pfad-Kind als Fallback.
+        let merkId = besuchtePosition[thema.id] ?? zielKindId
+        zentriereRingAuf(themaId: merkId, in: childrenThemen)
         animierePanels(skipBounce: true)
     }
 }

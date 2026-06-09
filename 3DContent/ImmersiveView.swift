@@ -10,13 +10,13 @@ struct ImmersiveView: View {
             if let thema = appModel.ausgewaehltesThema {
                 switch thema.name {
                 case "Sport":
-                    GenericRoomView(skyboxTextureName: "sport_equirectangular")
+                    GenericRoomView(skyboxTextureName: "sport_equirectangular", ambientSoundName: "fussball_sound")
                 case "Natur":
-                    GenericRoomView(skyboxTextureName: "natur_equirectangular")
+                    GenericRoomView(skyboxTextureName: "nature_equirectangular", ambientSoundName: "natur_sound")
                 case "Technik":
-                    GenericRoomView(skyboxTextureName: "technik_equirectangular")
+                    GenericRoomView(skyboxTextureName: "technik_equirectangular", ambientSoundName: "technik_sound", skyboxDrehungGrad: 60)
                 case "Politik":
-                    GenericRoomView(skyboxTextureName: "politik_equirectangular")
+                    GenericRoomView(skyboxTextureName: "politik_equirectangular", ambientSoundName: "politik_sound")
                 default:
                     FallbackRoomView()
                 }

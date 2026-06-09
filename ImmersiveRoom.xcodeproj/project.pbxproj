@@ -16,6 +16,10 @@
 		FE95209F2FBCA06E00F4302D /* LesePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520962FBCA06E00F4302D /* LesePanelView.swift */; };
 		FE9520A02FBCA06E00F4302D /* ThemaPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */; };
 		FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */; };
+		FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00CC012F7C300000934D05 /* fussball_sound.m4a */; };
+		FE00DD022F7C300000934D08 /* natur_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD012F7C300000934D07 /* natur_sound.m4a */; };
+		FE00DD042F7C300000934D0A /* technik_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD032F7C300000934D09 /* technik_sound.m4a */; };
+		FE00DD062F7C300000934D0C /* politik_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD052F7C300000934D0B /* politik_sound.m4a */; };
 		FEAB2EC52F7C19D6000934D4 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EC42F7C19D6000934D4 /* RealityKitContent */; };
 		FEAB2EE92F7C27F4000934D4 /* ImmersiveRoomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */; };
 		FEAB2EEA2F7C2811000934D4 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE42F7C220C000934D4 /* AppConfig.swift */; };
@@ -45,6 +49,10 @@
 		FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemaPanelView.swift; sourceTree = "<group>"; };
 		FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZurueckButtonView.swift; sourceTree = "<group>"; };
 		FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ROOMS_STRUCTURE.md; sourceTree = "<group>"; };
+		FE00CC012F7C300000934D05 /* fussball_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = fussball_sound.m4a; sourceTree = "<group>"; };
+		FE00DD012F7C300000934D07 /* natur_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = natur_sound.m4a; sourceTree = "<group>"; };
+		FE00DD032F7C300000934D09 /* technik_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = technik_sound.m4a; sourceTree = "<group>"; };
+		FE00DD052F7C300000934D0B /* politik_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = politik_sound.m4a; sourceTree = "<group>"; };
 		FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImmersiveRoom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEAB2EC32F7C19D6000934D4 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		FEAB2EE02F7C1D58000934D4 /* ImmersiveRoomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveRoomApp.swift; sourceTree = "<group>"; };
@@ -217,6 +225,10 @@
 		FEAB2EDF2F7C1CFD000934D4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FE00CC012F7C300000934D05 /* fussball_sound.m4a */,
+				FE00DD012F7C300000934D07 /* natur_sound.m4a */,
+				FE00DD032F7C300000934D09 /* technik_sound.m4a */,
+				FE00DD052F7C300000934D0B /* politik_sound.m4a */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -303,6 +315,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */,
+				FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */,
+				FE00DD022F7C300000934D08 /* natur_sound.m4a in Resources */,
+				FE00DD042F7C300000934D0A /* technik_sound.m4a in Resources */,
+				FE00DD062F7C300000934D0C /* politik_sound.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

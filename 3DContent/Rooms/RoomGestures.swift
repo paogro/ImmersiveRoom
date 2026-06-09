@@ -22,6 +22,13 @@ extension GenericRoomView {
                 // Schließen läuft über den ✕-Button bzw. den Hintergrund-Tap im
                 // LesePanelView (SwiftUI) → schliesseLesemodus().
 
+                if name == "zurueck_btn" {
+                    // Home: Immersive Space verlassen, zurück zur Kategorie-Auswahl.
+                    appModel.ausgewaehltesThema = nil
+                    openWindow(id: "main")
+                    return
+                }
+
                 if name == "basis_crumb" {
                     // Direkt zurück ins Start-Karussell der aktuellen Kategorie.
                     stopMomentum()
@@ -204,11 +211,12 @@ extension GenericRoomView {
     func aktualisiereFrontIndex() {
         let count = sichtbareThemen.count
         guard count > 0 else { return }
-        let step: Float = 2 * Float.pi / Float(count)
+        let step: Float = ringWinkelSchritt
         var idx = Int((ringAngle / step).rounded())
         idx = ((idx % count) + count) % count
         if idx != aktuellerIndex {
             aktuellerIndex = idx
+            merkeAktuelleKarte()   // Blätter-Position pro Ring merken
         }
     }
 
@@ -228,7 +236,7 @@ extension GenericRoomView {
         ringInteracting = true
 
         momentumTask = Task { @MainActor in
-            let step: Float = 2 * Float.pi / Float(count)
+            let step: Float = ringWinkelSchritt
             let frameSec: Float = 1.0 / 60.0
             let frameNs: UInt64 = 16_000_000
 
@@ -285,7 +293,7 @@ extension GenericRoomView {
         momentumTask?.cancel()
         ringInteracting = true
 
-        let step: Float = 2 * Float.pi / Float(count)
+        let step: Float = ringWinkelSchritt
         var target = Float(index) * step
         var diff = target - ringAngle
         let twoPi: Float = 2 * Float.pi
