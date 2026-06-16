@@ -51,11 +51,16 @@ struct GenericRoomView: View {
     @State var momentumTask: Task<Void, Never>? = nil
 
     @State var audioController: AudioPlaybackController? = nil   // laufender Raum-Loop, zum Stoppen beim Verlassen
+    @State var audioEntity = Entity()                            // stabile Audio-Entity; Loop wird per starteRaumSound darauf gespielt
 
-    // Kopf-/Geräte-Tracking (ARKit) — liefert die Kopfausrichtung, um die UI bei jedem
-    // Neu-Laden einmalig zur aktuellen Blickrichtung des Nutzers auszurichten.
+    // Kopf-/Geräte-Tracking (ARKit) — liefert Kopfausrichtung und -position, um die UI
+    // bei jedem Neu-Laden zur Blickrichtung auszurichten und ihr beim Gehen zu folgen.
     @State var arkitSession = ARKitSession()
     @State var worldTracking = WorldTrackingProvider()
+    @State var skyboxEntity = ModelEntity()   // Skybox-Kugel; folgt der Position, damit man nie an den Rand kommt
+
+    let followDeadzone: Float = 0.4   // bis hierhin (m) bleibt die UI stehen, bevor sie nachzieht
+    let followLerp: Float = 0.08      // Anteil pro Schritt, mit dem die UI zur Nutzerposition gleitet (weiches Nachziehen)
 
     // Navigations-Verlauf: pro Ring (Schlüssel = parent-Topic-ID) die zuletzt vorne
     // stehende Karte. Wird bei Vor-/Zurück-/Sprung-Navigation und beim Blättern
@@ -101,14 +106,13 @@ struct GenericRoomView: View {
             if let texture = try? await TextureResource(named: skyboxTextureName) {
                 skyboxMaterial.color = .init(texture: .init(texture))
             }
-            let skybox = ModelEntity(
-                mesh: .generateSphere(radius: 50),
-                materials: [skyboxMaterial]
-            )
-            skybox.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
+            // skyboxEntity ist eine @State-ModelEntity → stabile Referenz, damit der
+            // Follow-Loop sie später auf die Nutzerposition ziehen kann.
+            skyboxEntity.model = ModelComponent(mesh: .generateSphere(radius: 50), materials: [skyboxMaterial])
+            skyboxEntity.scale = SIMD3<Float>(x: -1, y: 1, z: 1)
             // Skybox um Y drehen, damit beim Start ein bestimmter Bildausschnitt vorne liegt.
-            skybox.orientation = simd_quatf(angle: skyboxDrehungGrad * .pi / 180, axis: [0, 1, 0])
-            content.add(skybox)
+            skyboxEntity.orientation = simd_quatf(angle: skyboxDrehungGrad * .pi / 180, axis: [0, 1, 0])
+            content.add(skyboxEntity)
 
             rootEntity.position = .zero
             content.add(rootEntity)
@@ -133,25 +137,14 @@ struct GenericRoomView: View {
                 rootEntity.addChild(zurueck)
             }
 
-            // --- Raum-Atmosphäre (Loop) ---
-            // Lädt den optionalen Ambient-Sound aus dem App-Bundle und spielt ihn
-            // als raumfüllende Schleife. AmbientAudioComponent = nicht ortsgebunden,
-            // umhüllt den Nutzer (passt zur Stadion-Atmo). Stop in .onDisappear.
-            if let soundName = ambientSoundName,
-               let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") {
-                do {
-                    let resource = try await AudioFileResource(
-                        contentsOf: url,
-                        configuration: .init(shouldLoop: true)
-                    )
-                    let audioEntity = Entity()
-                    audioEntity.components.set(AmbientAudioComponent())
-                    rootEntity.addChild(audioEntity)
-                    audioController = audioEntity.playAudio(resource)
-                } catch {
-                    print("Ambient-Sound konnte nicht geladen werden: \(error)")
-                }
-            }
+            // --- Raum-Atmosphäre ---
+            // Audio-Entity (stabile @State-Referenz) in die Szene hängen.
+            // ChannelAudioComponent = NICHT spatialisiert → der Loop klingt überall
+            // gleich, egal wohin man sich dreht (raumfüllende Atmo statt Punktquelle).
+            // Start/Stop laufen über .task (starteRaumSound) und .onDisappear, damit
+            // der Loop nach z. B. einem geöffneten Fenster automatisch wieder anläuft.
+            audioEntity.components.set(ChannelAudioComponent())
+            rootEntity.addChild(audioEntity)
 
         } update: { content, attachments in
 
@@ -430,6 +423,20 @@ struct GenericRoomView: View {
             // Kopf-Tracking starten, damit richteAufKopfrichtungAus() die aktuelle
             // Blickrichtung abfragen kann.
             try? await arkitSession.run([worldTracking])
+        }
+        .task {
+            // Raum-Sound starten. Läuft bei jedem (Wieder-)Erscheinen der View erneut,
+            // damit der Loop nach einem geöffneten/geschlossenen Fenster automatisch
+            // wieder anspringt (das make-Closure läuft dabei nicht erneut).
+            await starteRaumSound()
+        }
+        .task {
+            // Kontinuierliches, weiches Nachziehen: UI folgt der horizontalen Position,
+            // Skybox bleibt immer auf dem Nutzer zentriert. Nur Position — Umschauen frei.
+            while !Task.isCancelled {
+                folgeNutzerposition()
+                try? await Task.sleep(for: .milliseconds(16))
+            }
         }
         .onDisappear { audioController?.stop() }
     }

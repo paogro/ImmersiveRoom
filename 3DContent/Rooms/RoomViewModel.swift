@@ -21,6 +21,60 @@ extension GenericRoomView {
         rootEntity.orientation = simd_quatf(angle: yaw, axis: [0, 1, 0])
     }
 
+    /// Kontinuierliches, weiches Nachziehen der UI an die Nutzerposition (nur horizontale
+    /// Position — Rotation/Zoom bleiben unberührt, Umschauen bleibt frei). Die Skybox wird
+    /// immer exakt auf den Nutzer zentriert, damit man nie an ihren Rand kommt. Wird pro
+    /// Frame aus dem Follow-Loop aufgerufen.
+    func folgeNutzerposition() {
+        guard worldTracking.state == .running,
+              let anchor = worldTracking.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())
+        else { return }
+        let t = anchor.originFromAnchorTransform
+        let userX = t.columns.3.x
+        let userZ = t.columns.3.z
+
+        // Skybox immer auf den Nutzer zentriert (nur Position; Rotation/Scale bleiben).
+        skyboxEntity.position = SIMD3<Float>(userX, 0, userZ)
+
+        // UI weich nachziehen — nur wenn der Nutzer die Totzone verlässt, und nur horizontal.
+        let current = rootEntity.position
+        let dx = userX - current.x
+        let dz = userZ - current.z
+        let dist = (dx * dx + dz * dz).squareRoot()
+        if dist > followDeadzone {
+            rootEntity.position = SIMD3<Float>(
+                current.x + dx * followLerp,
+                current.y,
+                current.z + dz * followLerp
+            )
+        }
+    }
+
+    // MARK: - Raum-Sound
+
+    /// Startet den Raum-Loop auf der (nicht-spatialisierten) Audio-Entity. Wird bei jedem
+    /// Erscheinen der View aufgerufen (auch nach einem geöffneten Fenster), daher zuerst
+    /// ggf. einen alten Loop stoppen. Wartet kurz, bis die Audio-Entity in der Szene ist
+    /// (das make-Closure lädt asynchron die Skybox und kann noch nicht fertig sein).
+    func starteRaumSound() async {
+        guard let soundName = ambientSoundName,
+              let url = Bundle.main.url(forResource: soundName, withExtension: "m4a") else { return }
+
+        // Auf Einhängung in die Szene warten (max. ~5 s), sonst spielt playAudio ins Leere.
+        for _ in 0..<50 {
+            if audioEntity.scene != nil { break }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+
+        do {
+            let resource = try await AudioFileResource(contentsOf: url, configuration: .init(shouldLoop: true))
+            audioController?.stop()   // evtl. noch laufenden Loop beenden
+            audioController = audioEntity.playAudio(resource)
+        } catch {
+            print("Raum-Sound konnte nicht geladen werden: \(error)")
+        }
+    }
+
     // MARK: - Animation
 
     func animierePanels(skipBounce: Bool = false) {
