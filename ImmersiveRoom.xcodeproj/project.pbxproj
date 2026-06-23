@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91803402F8D2D5C00C330EE /* GenericRoomView.swift */; };
+		FEA100022FE0000000000002 /* PortalBoxImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA100012FE0000000000001 /* PortalBoxImmersiveView.swift */; };
+		FEA100212FE0000000000021 /* skybox1.hdr in Resources */ = {isa = PBXBuildFile; fileRef = FEA100112FE0000000000011 /* skybox1.hdr */; };
+		FEA100222FE0000000000022 /* skybox2.hdr in Resources */ = {isa = PBXBuildFile; fileRef = FEA100122FE0000000000012 /* skybox2.hdr */; };
+		FEA100232FE0000000000023 /* skybox3.hdr in Resources */ = {isa = PBXBuildFile; fileRef = FEA100132FE0000000000013 /* skybox3.hdr */; };
+		FEA100242FE0000000000024 /* skybox4.hdr in Resources */ = {isa = PBXBuildFile; fileRef = FEA100142FE0000000000014 /* skybox4.hdr */; };
 		FE95209A2FBCA06E00F4302D /* RoomViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520942FBCA06E00F4302D /* RoomViewModel.swift */; };
 		FE95209B2FBCA06E00F4302D /* ZurueckButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */; };
 		FE95209C2FBCA06E00F4302D /* RoomGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520932FBCA06E00F4302D /* RoomGestures.swift */; };
@@ -36,11 +41,15 @@
 		FEAB2EF82F7C28FA000934D4 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EF72F7C28FA000934D4 /* Storage */; };
 		FEAB2EFB2F7C2B24000934D4 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FEAB2EFA2F7C2B24000934D4 /* Supabase */; };
 		FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */; };
-		FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */ = {isa = PBXBuildFile; fileRef = FEAB2EBF2F7C19D6000934D4 /* ImmersiveRoom.app */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		B91803402F8D2D5C00C330EE /* GenericRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericRoomView.swift; sourceTree = "<group>"; };
+		FEA100012FE0000000000001 /* PortalBoxImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortalBoxImmersiveView.swift; sourceTree = "<group>"; };
+		FEA100112FE0000000000011 /* skybox1.hdr */ = {isa = PBXFileReference; lastKnownFileType = file; path = skybox1.hdr; sourceTree = "<group>"; };
+		FEA100122FE0000000000012 /* skybox2.hdr */ = {isa = PBXFileReference; lastKnownFileType = file; path = skybox2.hdr; sourceTree = "<group>"; };
+		FEA100132FE0000000000013 /* skybox3.hdr */ = {isa = PBXFileReference; lastKnownFileType = file; path = skybox3.hdr; sourceTree = "<group>"; };
+		FEA100142FE0000000000014 /* skybox4.hdr */ = {isa = PBXFileReference; lastKnownFileType = file; path = skybox4.hdr; sourceTree = "<group>"; };
 		FE9520912FBCA06E00F4302D /* ViewExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewExtensions.swift; sourceTree = "<group>"; };
 		FE9520932FBCA06E00F4302D /* RoomGestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomGestures.swift; sourceTree = "<group>"; };
 		FE9520942FBCA06E00F4302D /* RoomViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomViewModel.swift; sourceTree = "<group>"; };
@@ -105,6 +114,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FEA100032FE0000000000003 /* PortalBox */ = {
+			isa = PBXGroup;
+			children = (
+				FEA100012FE0000000000001 /* PortalBoxImmersiveView.swift */,
+			);
+			path = PortalBox;
+			sourceTree = "<group>";
+		};
 		FE9520922FBCA06E00F4302D /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -217,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				FE994A202F866AFF00646F26 /* Rooms */,
+				FEA100032FE0000000000003 /* PortalBox */,
 				FEAB2EE12F7C1D69000934D4 /* ImmersiveView.swift */,
 			);
 			path = 3DContent;
@@ -229,6 +247,10 @@
 				FE00DD012F7C300000934D07 /* natur_sound.m4a */,
 				FE00DD032F7C300000934D09 /* technik_sound.m4a */,
 				FE00DD052F7C300000934D0B /* politik_sound.m4a */,
+				FEA100112FE0000000000011 /* skybox1.hdr */,
+				FEA100122FE0000000000012 /* skybox2.hdr */,
+				FEA100132FE0000000000013 /* skybox3.hdr */,
+				FEA100142FE0000000000014 /* skybox4.hdr */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -319,6 +341,10 @@
 				FE00DD022F7C300000934D08 /* natur_sound.m4a in Resources */,
 				FE00DD042F7C300000934D0A /* technik_sound.m4a in Resources */,
 				FE00DD062F7C300000934D0C /* politik_sound.m4a in Resources */,
+				FEA100212FE0000000000021 /* skybox1.hdr in Resources */,
+				FEA100222FE0000000000022 /* skybox2.hdr in Resources */,
+				FEA100232FE0000000000023 /* skybox3.hdr in Resources */,
+				FEA100242FE0000000000024 /* skybox4.hdr in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,8 +356,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B91803412F8D2D5D00C330EE /* GenericRoomView.swift in Sources */,
-				FEAB2EFD2F7C2E52000934D4 /* ImmersiveRoom.app in Sources */,
 				FEAB2EFC2F7C2DF8000934D4 /* ImmersiveView.swift in Sources */,
+				FEA100022FE0000000000002 /* PortalBoxImmersiveView.swift in Sources */,
 				FEAB2EED2F7C2826000934D4 /* SupabaseClient.swift in Sources */,
 				FEAB2EEC2F7C2821000934D4 /* ThemenService.swift in Sources */,
 				FEAB2EEE2F7C2832000934D4 /* ContentView.swift in Sources */,

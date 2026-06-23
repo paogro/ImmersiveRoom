@@ -8,6 +8,7 @@ struct ContentView: View {
 
     @State private var themen: [Thema] = []
     @State private var status = ""
+    @State private var immersiveTransitionInProgress = false
 
     private let themenService = ThemenService()
 
@@ -21,14 +22,13 @@ struct ContentView: View {
 
                 Button {
                     Task {
-                        await openImmersiveSpace(id: "ImmersiveSpace")
-                        appModel.isImmersiveOpen = true
-                        await ladeHauptkategorien()
+                        await starteExperience()
                     }
                 } label: {
                     Text("Start Experience")
                 }
                 .buttonStyle(GlassCardButtonStyle())
+                .disabled(immersiveTransitionInProgress)
             } else {
                 Image("Artboard 5@300x")
                     .resizable()
@@ -40,34 +40,129 @@ struct ContentView: View {
 
                 ForEach(themen) { thema in
                     Button {
-                        appModel.ausgewaehltesThema = thema
-                        dismissWindow(id: "main")
+                        Task {
+                            await oeffneRaum(thema)
+                        }
                     } label: {
                         Text(thema.name)
                     }
                     .buttonStyle(GlassCardButtonStyle())
+                    .disabled(immersiveTransitionInProgress)
                 }
 
                 Button {
                     Task {
-                        await dismissImmersiveSpace()
-                        appModel.isImmersiveOpen = false
-                        themen = []
-                        appModel.ausgewaehltesThema = nil
+                        await beendeExperience()
                     }
                 } label: {
                     Text("Experience beenden")
                 }
                 .buttonStyle(GlassCardButtonStyle(tint: .red))
                 .padding(.top, 20)
+                .disabled(immersiveTransitionInProgress)
             }
         }
         .padding(40)
         .task {
+            await bereinigeRueckkehrZurAuswahl()
             if themen.isEmpty && appModel.isImmersiveOpen {
                 await ladeHauptkategorien()
             }
         }
+    }
+
+    func starteExperience() async {
+        guard !immersiveTransitionInProgress else { return }
+        immersiveTransitionInProgress = true
+        defer { immersiveTransitionInProgress = false }
+
+        if appModel.portalBoxIsOpen || appModel.immersiveSpaceState != .closed {
+            await dismissImmersiveSpace()
+            appModel.portalBoxIsOpen = false
+            appModel.immersiveSpaceState = .closed
+        }
+
+        appModel.ausgewaehltesThema = nil
+        appModel.isImmersiveOpen = true
+
+        switch await openImmersiveSpace(id: PortalBoxConfiguration.immersiveSpaceID) {
+        case .opened:
+            appModel.portalBoxIsOpen = true
+        case .error, .userCancelled:
+            appModel.portalBoxIsOpen = false
+        @unknown default:
+            appModel.portalBoxIsOpen = false
+        }
+
+        if themen.isEmpty {
+            await ladeHauptkategorien()
+        }
+    }
+
+    func oeffneRaum(_ thema: Thema) async {
+        guard !immersiveTransitionInProgress else { return }
+        immersiveTransitionInProgress = true
+        defer { immersiveTransitionInProgress = false }
+
+        if appModel.portalBoxIsOpen {
+            await dismissImmersiveSpace()
+            appModel.portalBoxIsOpen = false
+            appModel.immersiveSpaceState = .closed
+        }
+
+        appModel.ausgewaehltesThema = thema
+
+        switch appModel.immersiveSpaceState {
+        case .open:
+            dismissWindow(id: "main")
+        case .closed:
+            appModel.immersiveSpaceState = .inTransition
+            switch await openImmersiveSpace(id: appModel.immersiveSpaceID) {
+            case .opened:
+                dismissWindow(id: "main")
+            case .error, .userCancelled:
+                appModel.ausgewaehltesThema = nil
+                appModel.immersiveSpaceState = .closed
+            @unknown default:
+                appModel.ausgewaehltesThema = nil
+                appModel.immersiveSpaceState = .closed
+            }
+        case .inTransition:
+            appModel.ausgewaehltesThema = nil
+        }
+    }
+
+    func beendeExperience() async {
+        guard !immersiveTransitionInProgress else { return }
+        immersiveTransitionInProgress = true
+        defer { immersiveTransitionInProgress = false }
+
+        if appModel.portalBoxIsOpen || appModel.immersiveSpaceState != .closed {
+            await dismissImmersiveSpace()
+        }
+
+        appModel.portalBoxIsOpen = false
+        appModel.immersiveSpaceState = .closed
+        appModel.isImmersiveOpen = false
+        appModel.ausgewaehltesThema = nil
+        themen = []
+        status = ""
+    }
+
+    func bereinigeRueckkehrZurAuswahl() async {
+        guard appModel.isImmersiveOpen,
+              appModel.ausgewaehltesThema == nil,
+              !appModel.portalBoxIsOpen,
+              appModel.immersiveSpaceState == .open,
+              !immersiveTransitionInProgress
+        else {
+            return
+        }
+
+        immersiveTransitionInProgress = true
+        await dismissImmersiveSpace()
+        appModel.immersiveSpaceState = .closed
+        immersiveTransitionInProgress = false
     }
 
     func ladeHauptkategorien() async {
