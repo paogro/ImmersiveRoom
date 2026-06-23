@@ -91,8 +91,20 @@ struct PortalBoxImmersiveView: View {
                 self.box = box
                 box.position = [0, 1, -4]
                 box.scale *= [1, 2, 1]
+                // Box um Y drehen, sodass beim Start die KANTE zwischen Natur (−Z) und
+                // Politik (+X) frontal zum Nutzer zeigt — so erkennt man sofort, dass es
+                // ein 3D-Würfel/Portal ist (statt einer flachen Fläche).
+                box.orientation = simd_quatf(angle: -3 * .pi / 4, axis: [0, 1, 0])
                 portalEntities = [:]
                 previousDevicePosition = nil
+
+                // --- Audio ---
+                // Räumlicher Loop AN der Box: SpatialAudio dämpft über Distanz → näher = lauter.
+                if let u = Bundle.main.url(forResource: "chest_loop", withExtension: "m4a"),
+                   let loop = try? await AudioFileResource(contentsOf: u, configuration: .init(shouldLoop: true)) {
+                    box.components.set(SpatialAudioComponent())
+                    box.playAudio(loop)
+                }
 
                 let worlds = await createWorlds()
                 content.add(worlds)
@@ -420,6 +432,9 @@ struct PortalBoxImmersiveView: View {
             isTransitioning = false
         }
 
+        // Kein künstliches Halten: der Spatial-Loop an der Box läuft natürlich weiter,
+        // bis der Portal-Raum geschlossen wird. Der „Fader" wird stattdessen beim
+        // Betreten des neuen Raums abgespielt (GenericRoomView).
         do {
             let themen = try await themenService.getHauptkategorien()
             guard let thema = themen.first(where: { $0.name.localizedCaseInsensitiveCompare(mapping.themeName) == .orderedSame }) else {

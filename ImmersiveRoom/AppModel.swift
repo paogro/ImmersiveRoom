@@ -14,4 +14,6 @@ class AppModel {
     var portalBoxIsOpen = false
     var ausgewaehltesThema: Thema? = nil
     var ausgewaehlteThemenProEbene: [UUID] = []
+    // Aktuell geöffnetes Quelle-Web-Fenster (URL), um es gezielt wieder schließen zu können.
+    var offeneQuelleURL: URL? = nil
 }

@@ -50,7 +50,9 @@ struct WebView: UIViewRepresentable {
 struct QuelleWebView: View {
     let url: URL
 
+    @Environment(AppModel.self) private var appModel
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
     @State private var pageTitle = ""
 
@@ -77,6 +79,18 @@ struct QuelleWebView: View {
                         }
                     }
                 }
+        }
+        // Schließt sich selbst, sobald die App das Flag zurücksetzt (z. B. bei Navigation).
+        // Self-dismiss aus der eigenen Fenster-Scene ist zuverlässiger als dismissWindow
+        // von außerhalb.
+        .onChange(of: appModel.offeneQuelleURL) { _, neu in
+            if neu == nil { dismiss() }
+        }
+        // Wird das Fenster manuell geschlossen, Flag konsistent halten.
+        .onDisappear {
+            if appModel.offeneQuelleURL != nil {
+                appModel.offeneQuelleURL = nil
+            }
         }
     }
 }

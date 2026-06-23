@@ -9,7 +9,8 @@ struct GenericRoomView: View {
     var skyboxDrehungGrad: Float = 0      // Y-Drehung der Skybox in Grad: legt fest, welcher Bildausschnitt beim Start vorne liegt
 
     @Environment(AppModel.self) var appModel
-    @Environment(\.openWindow) var openWindow 
+    @Environment(\.openWindow) var openWindow
+    @Environment(\.dismissWindow) var dismissWindow
 
     // @State properties must live in the struct declaration — Swift extensions
     // in other files cannot access `private` stored properties, so all @State
@@ -164,18 +165,27 @@ struct GenericRoomView: View {
         } update: { content, attachments in
 
             // === LESE-PANEL ===
+            // KEIN frühes return mehr: Lesepanel mounten, aber Breadcrumb + Home-Button
+            // weiter aktualisieren, damit man auch im Lesemodus navigieren/aufklappen kann.
+            // Der Themen-Ring bleibt automatisch versteckt (thema_/child_-Attachments sind
+            // mit !leseModusAktiv gegated).
             if leseModusAktiv, let lese = leseThema {
-                if let lesePanel = attachments.entity(for: "lese_\(lese.id.uuidString)") {
-                    lesePanel.position = SIMD3<Float>(0, 1.5, -1.8)
-                    lesePanel.name = "lese_\(lese.id.uuidString)"
-                    // Bewusst KEIN InputTargetComponent/CollisionComponent: sonst würde die
-                    // szenenweite SpatialTapGesture (tapGesture) das ganze Panel abfangen und
-                    // die SwiftUI-Buttons (Schließen, "Mehr Infos") bekämen ihren Tap nie.
-                    // Schließen und Link laufen jetzt rein über SwiftUI im LesePanelView.
-                    rootEntity.addChild(lesePanel)
+                // Lesepanel nur zeigen, wenn KEIN Web-View offen ist UND der Breadcrumb
+                // NICHT aufgeklappt ist. Beim Aufklappen (oder offenem Web-View) verschwindet
+                // der Vordergrund, damit der Breadcrumb frei lesbar ist.
+                if appModel.offeneQuelleURL == nil && !breadcrumbExpanded {
+                    if let lesePanel = attachments.entity(for: "lese_\(lese.id.uuidString)") {
+                        lesePanel.position = SIMD3<Float>(0, 1.5, -1.8)
+                        lesePanel.name = "lese_\(lese.id.uuidString)"
+                        // Bewusst KEIN InputTargetComponent/CollisionComponent: sonst würde die
+                        // szenenweite SpatialTapGesture (tapGesture) das ganze Panel abfangen und
+                        // die SwiftUI-Buttons (Schließen, "Mehr Infos") bekämen ihren Tap nie.
+                        rootEntity.addChild(lesePanel)
+                    }
+                } else {
+                    let staleLese = rootEntity.children.filter { $0.name.hasPrefix("lese_") }
+                    staleLese.forEach { $0.removeFromParent() }
                 }
-                rootEntity.scale = SIMD3<Float>(repeating: baumScale)
-                return
             }
 
             // === BREADCRUMB STACK ===

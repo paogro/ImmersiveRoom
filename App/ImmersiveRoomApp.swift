@@ -16,6 +16,7 @@ struct ImmersiveRoomApp: App {
         WindowGroup(id: "quelle", for: URL.self) { $url in
             if let url {
                 QuelleWebView(url: url)
+                    .environment(appModel)
             }
         }
         .defaultSize(width: 900, height: 700)

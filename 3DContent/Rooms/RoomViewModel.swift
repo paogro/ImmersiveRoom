@@ -159,6 +159,27 @@ extension GenericRoomView {
         leseLaedt = false
     }
 
+    /// Verlässt den Lese-Kontext bei Navigation: schließt das Lesepanel (falls offen)
+    /// und das Quelle-Web-Fenster, damit beides nicht im Raum „hängen bleibt".
+    func verlasseLesekontext() {
+        if leseModusAktiv {
+            leseModusAktiv = false
+            leseThema = nil
+            leseArtikel = nil
+            leseLaedt = false
+            let staleLese = rootEntity.children.filter { $0.name.hasPrefix("lese_") }
+            staleLese.forEach { $0.removeFromParent() }
+        }
+        // Quelle-Fenster schließen — mehrgleisig, weil das wert-basierte Fenster sich
+        // sonst zickig verhält: über id+value, über value allein, und das Flag zurücksetzen
+        // (worauf sich das Fenster zusätzlich selbst schließt, siehe QuelleWebView).
+        if let u = appModel.offeneQuelleURL {
+            dismissWindow(id: "quelle", value: u)
+            dismissWindow(value: u)
+        }
+        appModel.offeneQuelleURL = nil
+    }
+
     /// Schließt den Lesemodus und räumt die verwaiste Lese-Entity aus der Szene.
     /// Wird vom ✕-Button bzw. vom Tap auf den Panel-Hintergrund (SwiftUI) aufgerufen.
     func schliesseLesemodus() {
@@ -204,6 +225,7 @@ extension GenericRoomView {
     }
 
     func themaAusgewaehlt(thema: Thema) async {
+        verlasseLesekontext()
         status = "Lade \(thema.name)..."
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
@@ -231,6 +253,7 @@ extension GenericRoomView {
     }
 
     func childAusgewaehlt(thema: Thema) async {
+        verlasseLesekontext()
         status = "Lade \(thema.name)..."
         do {
             let children = try await themenService.getUnterthemen(vonThemaId: thema.id)
@@ -293,6 +316,7 @@ extension GenericRoomView {
     }
 
     func zurueckEineEbene() async {
+        verlasseLesekontext()
         navigiertTiefer = false
         breadcrumbExpanded = false
         stopMomentum()
@@ -324,6 +348,7 @@ extension GenericRoomView {
     // Kategorie — egal wie tief man gerade steckt. Aufgerufen vom "Basis-Raum"-
     // Eintrag im aufgeklappten Breadcrumb.
     func zurueckZuBasis() async {
+        verlasseLesekontext()
         navigiertTiefer = false
         breadcrumbExpanded = false
         stopMomentum()
@@ -345,6 +370,7 @@ extension GenericRoomView {
     }
 
     func zurueckZuAncestor(thema: Thema) async {
+        verlasseLesekontext()
         guard let fokus = fokusThema else { return }
         let vollPfad = pfad + [fokus]
         guard let idx = vollPfad.firstIndex(where: { $0.id == thema.id }) else { return }

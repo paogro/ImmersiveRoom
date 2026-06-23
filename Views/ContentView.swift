@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct ContentView: View {
     @Environment(AppModel.self) private var appModel
@@ -9,6 +10,7 @@ struct ContentView: View {
     @State private var themen: [Thema] = []
     @State private var status = ""
     @State private var immersiveTransitionInProgress = false
+    @State private var startSoundPlayer: AVAudioPlayer?   // hält den Start-Klang am Leben
 
     private let themenService = ThemenService()
     // Stable fallback for the previous manual room picker flow.
@@ -40,6 +42,7 @@ struct ContentView: View {
             .frame(maxWidth: 320)
 
         Button {
+            spieleStartSound()
             Task {
                 await starteExperience()
             }
@@ -89,6 +92,18 @@ struct ContentView: View {
         .buttonStyle(GlassCardButtonStyle(tint: .red))
         .padding(.top, 20)
         .disabled(immersiveTransitionInProgress)
+    }
+
+    // Spielt denselben Klick wie der Breadcrumb (Bleep Bloop) beim Start-Button.
+    // Im 2D-Fenster ohne RealityKit-Szene → über AVAudioPlayer.
+    private func spieleStartSound() {
+        guard let url = Bundle.main.url(forResource: "click_bleep", withExtension: "m4a") else { return }
+        do {
+            startSoundPlayer = try AVAudioPlayer(contentsOf: url)
+            startSoundPlayer?.play()
+        } catch {
+            print("Start-Sound konnte nicht abgespielt werden: \(error.localizedDescription)")
+        }
     }
 
     func starteExperience() async {

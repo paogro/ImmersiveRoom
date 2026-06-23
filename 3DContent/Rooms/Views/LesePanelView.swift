@@ -10,6 +10,7 @@ struct LesePanelView: View {
     let leseModusAktiv: Bool
     let onClose: () -> Void
 
+    @Environment(AppModel.self) private var appModel
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -63,6 +64,7 @@ struct LesePanelView: View {
                         // "Mehr Infos" → Originalquelle öffnen.
                         if let url = artikel?.quelleURL {
                             Button {
+                                appModel.offeneQuelleURL = url   // merken, um es gezielt schließen zu können
                                 openWindow(id: "quelle", value: url)
                             } label: {
                                 HStack(spacing: 10) {

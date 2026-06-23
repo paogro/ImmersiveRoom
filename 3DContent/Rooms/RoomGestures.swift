@@ -48,6 +48,11 @@ extension GenericRoomView {
                         if pfad.isEmpty && !breadcrumbExpanded {
                             Task { await zurueckEineEbene() }
                         } else {
+                            // Beim Aufklappen den Web-View schließen, damit der Vordergrund frei ist.
+                            if !breadcrumbExpanded, let u = appModel.offeneQuelleURL {
+                                dismissWindow(id: "quelle", value: u)
+                                appModel.offeneQuelleURL = nil
+                            }
                             withAnimation(.easeInOut(duration: 0.4)) {
                                 breadcrumbExpanded.toggle()
                             }
