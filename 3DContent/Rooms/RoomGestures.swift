@@ -24,6 +24,7 @@ extension GenericRoomView {
 
                 if name == "zurueck_btn" {
                     // Home: Immersive Space verlassen, zurück zur Kategorie-Auswahl.
+                    spieleClick(clickBreadcrumb)
                     appModel.ausgewaehltesThema = nil
                     openWindow(id: "main")
                     return
@@ -31,12 +32,14 @@ extension GenericRoomView {
 
                 if name == "basis_crumb" {
                     // Direkt zurück ins Start-Karussell der aktuellen Kategorie.
+                    spieleClick(clickBreadcrumb)
                     stopMomentum()
                     Task { await zurueckZuBasis() }
                     return
                 }
 
                 if name.hasPrefix("crumb_") {
+                    spieleClick(clickBreadcrumb)
                     let uuidString = String(name.dropFirst("crumb_".count))
                     let isFront = fokusThema?.id.uuidString == uuidString
                     if isFront {
@@ -65,6 +68,7 @@ extension GenericRoomView {
                     // nicht mit dem überein, was der Nutzer angetippt hat.
                     let uuidString = String(name.dropFirst("thema_".count))
                     if let thema = aktuelleThemen.first(where: { $0.id.uuidString == uuidString }) {
+                        spieleClick(clickKarten)
                         stopMomentum()
                         Task { await themaAusgewaehlt(thema: thema) }
                     }
@@ -74,6 +78,7 @@ extension GenericRoomView {
                 if name.hasPrefix("child_") {
                     let uuidString = String(name.dropFirst("child_".count))
                     if let thema = childrenThemen.first(where: { $0.id.uuidString == uuidString }) {
+                        spieleClick(clickKarten)
                         Task { await childAusgewaehlt(thema: thema) }
                     }
                     return
@@ -337,6 +342,7 @@ extension GenericRoomView {
             thema = nil
         }
         if let thema {
+            spieleClick(clickKarten)
             Task { await oeffneLesemodus(fuer: thema) }
         }
     }

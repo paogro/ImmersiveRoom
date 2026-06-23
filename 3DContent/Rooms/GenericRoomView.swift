@@ -52,6 +52,9 @@ struct GenericRoomView: View {
 
     @State var audioController: AudioPlaybackController? = nil   // laufender Raum-Loop, zum Stoppen beim Verlassen
     @State var audioEntity = Entity()                            // stabile Audio-Entity; Loop wird per starteRaumSound darauf gespielt
+    @State var sfxEntity = Entity()                              // eigene Entity für kurze UI-Klicks (stört den Loop nicht)
+    @State var clickKarten: AudioFileResource? = nil             // Karten-Navigation (rein/eintauchen) → RPG-Sound
+    @State var clickBreadcrumb: AudioFileResource? = nil          // Breadcrumb & Home → Bleep-Bloop-Sound
 
     // Kopf-/Geräte-Tracking (ARKit) — liefert Kopfausrichtung und -position, um die UI
     // bei jedem Neu-Laden zur Blickrichtung auszurichten und ihr beim Gehen zu folgen.
@@ -146,6 +149,10 @@ struct GenericRoomView: View {
             // der Loop nach z. B. einem geöffneten Fenster automatisch wieder anläuft.
             audioEntity.components.set(ChannelAudioComponent())
             rootEntity.addChild(audioEntity)
+
+            // Eigene Entity für kurze UI-Klicks (nicht-spatialisiert), getrennt vom Loop.
+            sfxEntity.components.set(ChannelAudioComponent())
+            rootEntity.addChild(sfxEntity)
 
             // Positions-Following im RENDER-LOOP (jeden Frame, synchron zur Bildrate) statt
             // über einen separaten Timer → glatt, kein Ruckeln. Liefert auch die echte
@@ -437,6 +444,16 @@ struct GenericRoomView: View {
             // damit der Loop nach einem geöffneten/geschlossenen Fenster automatisch
             // wieder anspringt (das make-Closure läuft dabei nicht erneut).
             await starteRaumSound()
+        }
+        .task {
+            // Kurze UI-Klick-Sounds einmal aus dem App-Bundle vorladen (nicht loopen),
+            // damit sie bei Taps sofort abgespielt werden können.
+            if let u = Bundle.main.url(forResource: "click_rpg", withExtension: "m4a") {
+                clickKarten = try? await AudioFileResource(contentsOf: u, configuration: .init(shouldLoop: false))
+            }
+            if let u = Bundle.main.url(forResource: "click_bleep", withExtension: "m4a") {
+                clickBreadcrumb = try? await AudioFileResource(contentsOf: u, configuration: .init(shouldLoop: false))
+            }
         }
         .onDisappear { audioController?.stop() }
     }

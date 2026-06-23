@@ -53,6 +53,15 @@ extension GenericRoomView {
         }
     }
 
+    // MARK: - UI-Klick-Sounds
+
+    /// Spielt einen kurzen, nicht-spatialisierten UI-Klick (One-Shot) auf der SFX-Entity.
+    /// Stört den laufenden Raum-Loop nicht (eigene Entity).
+    func spieleClick(_ resource: AudioFileResource?) {
+        guard let resource, sfxEntity.scene != nil else { return }
+        sfxEntity.playAudio(resource)
+    }
+
     // MARK: - Raum-Sound
 
     /// Startet den Raum-Loop auf der (nicht-spatialisierten) Audio-Entity. Wird bei jedem

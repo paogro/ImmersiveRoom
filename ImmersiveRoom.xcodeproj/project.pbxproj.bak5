@@ -17,8 +17,6 @@
 		FE9520A02FBCA06E00F4302D /* ThemaPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9520972FBCA06E00F4302D /* ThemaPanelView.swift */; };
 		FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */ = {isa = PBXBuildFile; fileRef = FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */; };
 		FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00CC012F7C300000934D05 /* fussball_sound.m4a */; };
-		FE00EE022F7C300000934D0E /* click_bleep.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00EE012F7C300000934D0D /* click_bleep.m4a */; };
-		FE00EE042F7C300000934D10 /* click_rpg.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00EE032F7C300000934D0F /* click_rpg.m4a */; };
 		FE00DD022F7C300000934D08 /* natur_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD012F7C300000934D07 /* natur_sound.m4a */; };
 		FE00DD042F7C300000934D0A /* technik_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD032F7C300000934D09 /* technik_sound.m4a */; };
 		FE00DD062F7C300000934D0C /* politik_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = FE00DD052F7C300000934D0B /* politik_sound.m4a */; };
@@ -52,8 +50,6 @@
 		FE9520982FBCA06E00F4302D /* ZurueckButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZurueckButtonView.swift; sourceTree = "<group>"; };
 		FE9520A12FBCA83000F4302D /* ROOMS_STRUCTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ROOMS_STRUCTURE.md; sourceTree = "<group>"; };
 		FE00CC012F7C300000934D05 /* fussball_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = fussball_sound.m4a; sourceTree = "<group>"; };
-		FE00EE012F7C300000934D0D /* click_bleep.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = click_bleep.m4a; sourceTree = "<group>"; };
-		FE00EE032F7C300000934D0F /* click_rpg.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = click_rpg.m4a; sourceTree = "<group>"; };
 		FE00DD012F7C300000934D07 /* natur_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = natur_sound.m4a; sourceTree = "<group>"; };
 		FE00DD032F7C300000934D09 /* technik_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = technik_sound.m4a; sourceTree = "<group>"; };
 		FE00DD052F7C300000934D0B /* politik_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = "audio.x-m4a"; path = politik_sound.m4a; sourceTree = "<group>"; };
@@ -230,8 +226,6 @@
 			isa = PBXGroup;
 			children = (
 				FE00CC012F7C300000934D05 /* fussball_sound.m4a */,
-				FE00EE012F7C300000934D0D /* click_bleep.m4a */,
-				FE00EE032F7C300000934D0F /* click_rpg.m4a */,
 				FE00DD012F7C300000934D07 /* natur_sound.m4a */,
 				FE00DD032F7C300000934D09 /* technik_sound.m4a */,
 				FE00DD052F7C300000934D0B /* politik_sound.m4a */,
@@ -322,8 +316,6 @@
 			files = (
 				FE9520A22FBCA83000F4302D /* ROOMS_STRUCTURE.md in Resources */,
 				FE00CC022F7C300000934D06 /* fussball_sound.m4a in Resources */,
-				FE00EE022F7C300000934D0E /* click_bleep.m4a in Resources */,
-				FE00EE042F7C300000934D10 /* click_rpg.m4a in Resources */,
 				FE00DD022F7C300000934D08 /* natur_sound.m4a in Resources */,
 				FE00DD042F7C300000934D0A /* technik_sound.m4a in Resources */,
 				FE00DD062F7C300000934D0C /* politik_sound.m4a in Resources */,
