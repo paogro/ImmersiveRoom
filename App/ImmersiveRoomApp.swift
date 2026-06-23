@@ -41,6 +41,7 @@ struct ImmersiveRoomApp: App {
 
         ImmersiveSpace(id: PortalBoxConfiguration.immersiveSpaceID) {
             PortalBoxImmersiveView()
+                .environment(appModel)
         }
     }
 }

@@ -11,64 +11,84 @@ struct ContentView: View {
     @State private var immersiveTransitionInProgress = false
 
     private let themenService = ThemenService()
+    // Stable fallback for the previous manual room picker flow.
+    // Set to true to keep the four room buttons visible after starting PortalBox.
+    private let manualRoomPickerFallbackEnabled = false
 
     var body: some View {
         VStack(spacing: 30) {
-            if !appModel.isImmersiveOpen {
-                Image("VIEWS")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 320)
-
-                Button {
-                    Task {
-                        await starteExperience()
-                    }
-                } label: {
-                    Text("Start Experience")
-                }
-                .buttonStyle(GlassCardButtonStyle())
-                .disabled(immersiveTransitionInProgress)
+            if appModel.isImmersiveOpen && manualRoomPickerFallbackEnabled {
+                manualRoomPickerFallbackView
             } else {
-                Image("Artboard 5@300x")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 320)
-
-                Text(status)
-                    .foregroundColor(.gray)
-
-                ForEach(themen) { thema in
-                    Button {
-                        Task {
-                            await oeffneRaum(thema)
-                        }
-                    } label: {
-                        Text(thema.name)
-                    }
-                    .buttonStyle(GlassCardButtonStyle())
-                    .disabled(immersiveTransitionInProgress)
-                }
-
-                Button {
-                    Task {
-                        await beendeExperience()
-                    }
-                } label: {
-                    Text("Experience beenden")
-                }
-                .buttonStyle(GlassCardButtonStyle(tint: .red))
-                .padding(.top, 20)
-                .disabled(immersiveTransitionInProgress)
+                startExperienceView
             }
         }
         .padding(40)
         .task {
             await bereinigeRueckkehrZurAuswahl()
-            if themen.isEmpty && appModel.isImmersiveOpen {
+            if manualRoomPickerFallbackEnabled && themen.isEmpty && appModel.isImmersiveOpen {
                 await ladeHauptkategorien()
             }
         }
+    }
+
+    @ViewBuilder
+    private var startExperienceView: some View {
+        Image("VIEWS")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: 320)
+
+        Button {
+            Task {
+                await starteExperience()
+            }
+        } label: {
+            Text("Start Experience")
+        }
+        .buttonStyle(GlassCardButtonStyle())
+        .disabled(immersiveTransitionInProgress)
+
+        if !status.isEmpty {
+            Text(status)
+                .foregroundColor(.gray)
+        }
+    }
+
+    // Fallback: previous manual room selection screen with the four category buttons.
+    // Keep this block intact so the stable manual flow can be restored quickly.
+    @ViewBuilder
+    private var manualRoomPickerFallbackView: some View {
+        Image("Artboard 5@300x")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: 320)
+
+        Text(status)
+            .foregroundColor(.gray)
+
+        ForEach(themen) { thema in
+            Button {
+                Task {
+                    await oeffneRaum(thema)
+                }
+            } label: {
+                Text(thema.name)
+            }
+            .buttonStyle(GlassCardButtonStyle())
+            .disabled(immersiveTransitionInProgress)
+        }
+
+        Button {
+            Task {
+                await beendeExperience()
+            }
+        } label: {
+            Text("Experience beenden")
+        }
+        .buttonStyle(GlassCardButtonStyle(tint: .red))
+        .padding(.top, 20)
+        .disabled(immersiveTransitionInProgress)
     }
 
     func starteExperience() async {
@@ -83,19 +103,36 @@ struct ContentView: View {
         }
 
         appModel.ausgewaehltesThema = nil
-        appModel.isImmersiveOpen = true
+        status = ""
 
         switch await openImmersiveSpace(id: PortalBoxConfiguration.immersiveSpaceID) {
         case .opened:
             appModel.portalBoxIsOpen = true
+            appModel.isImmersiveOpen = true
+
+            if manualRoomPickerFallbackEnabled {
+                if themen.isEmpty {
+                    await ladeHauptkategorien()
+                }
+            } else {
+                dismissWindow(id: "main")
+            }
         case .error, .userCancelled:
             appModel.portalBoxIsOpen = false
+            appModel.isImmersiveOpen = manualRoomPickerFallbackEnabled
+            status = "PortalBox konnte nicht geöffnet werden."
+
+            if manualRoomPickerFallbackEnabled && themen.isEmpty {
+                await ladeHauptkategorien()
+            }
         @unknown default:
             appModel.portalBoxIsOpen = false
-        }
+            appModel.isImmersiveOpen = manualRoomPickerFallbackEnabled
+            status = "PortalBox konnte nicht geöffnet werden."
 
-        if themen.isEmpty {
-            await ladeHauptkategorien()
+            if manualRoomPickerFallbackEnabled && themen.isEmpty {
+                await ladeHauptkategorien()
+            }
         }
     }
 
