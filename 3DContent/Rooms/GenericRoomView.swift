@@ -58,9 +58,10 @@ struct GenericRoomView: View {
     @State var arkitSession = ARKitSession()
     @State var worldTracking = WorldTrackingProvider()
     @State var skyboxEntity = ModelEntity()   // Skybox-Kugel; folgt der Position, damit man nie an den Rand kommt
+    @State var sceneUpdateSub: EventSubscription? = nil   // Pro-Frame-Abo (Render-Loop) fürs Positions-Following
 
     let followDeadzone: Float = 0.4   // bis hierhin (m) bleibt die UI stehen, bevor sie nachzieht
-    let followLerp: Float = 0.08      // Anteil pro Schritt, mit dem die UI zur Nutzerposition gleitet (weiches Nachziehen)
+    let followRate: Float = 6.0       // Glättungsrate des Nachziehens (höher = schneller), frame-zeit-basiert
 
     // Navigations-Verlauf: pro Ring (Schlüssel = parent-Topic-ID) die zuletzt vorne
     // stehende Karte. Wird bei Vor-/Zurück-/Sprung-Navigation und beim Blättern
@@ -145,6 +146,13 @@ struct GenericRoomView: View {
             // der Loop nach z. B. einem geöffneten Fenster automatisch wieder anläuft.
             audioEntity.components.set(ChannelAudioComponent())
             rootEntity.addChild(audioEntity)
+
+            // Positions-Following im RENDER-LOOP (jeden Frame, synchron zur Bildrate) statt
+            // über einen separaten Timer → glatt, kein Ruckeln. Liefert auch die echte
+            // Frame-Zeit (deltaTime) für framerate-unabhängiges Glätten.
+            sceneUpdateSub = content.subscribe(to: SceneEvents.Update.self) { event in
+                folgeNutzerposition(deltaTime: event.deltaTime)
+            }
 
         } update: { content, attachments in
 
@@ -429,14 +437,6 @@ struct GenericRoomView: View {
             // damit der Loop nach einem geöffneten/geschlossenen Fenster automatisch
             // wieder anspringt (das make-Closure läuft dabei nicht erneut).
             await starteRaumSound()
-        }
-        .task {
-            // Kontinuierliches, weiches Nachziehen: UI folgt der horizontalen Position,
-            // Skybox bleibt immer auf dem Nutzer zentriert. Nur Position — Umschauen frei.
-            while !Task.isCancelled {
-                folgeNutzerposition()
-                try? await Task.sleep(for: .milliseconds(16))
-            }
         }
         .onDisappear { audioController?.stop() }
     }

@@ -25,7 +25,7 @@ extension GenericRoomView {
     /// Position — Rotation/Zoom bleiben unberührt, Umschauen bleibt frei). Die Skybox wird
     /// immer exakt auf den Nutzer zentriert, damit man nie an ihren Rand kommt. Wird pro
     /// Frame aus dem Follow-Loop aufgerufen.
-    func folgeNutzerposition() {
+    func folgeNutzerposition(deltaTime: TimeInterval) {
         guard worldTracking.state == .running,
               let anchor = worldTracking.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())
         else { return }
@@ -33,19 +33,22 @@ extension GenericRoomView {
         let userX = t.columns.3.x
         let userZ = t.columns.3.z
 
-        // Skybox immer auf den Nutzer zentriert (nur Position; Rotation/Scale bleiben).
+        // Skybox JEDEN Frame fest auf den Nutzer zentrieren (nur Position; Rotation/Scale
+        // bleiben) → du bleibst immer im Zentrum, Umschauen frei, kein Rausgehen.
         skyboxEntity.position = SIMD3<Float>(userX, 0, userZ)
 
-        // UI weich nachziehen — nur wenn der Nutzer die Totzone verlässt, und nur horizontal.
+        // UI weich nachziehen — nur wenn der Nutzer die Totzone verlässt, nur horizontal.
+        // Glättung framerate-unabhängig über die echte Frame-Zeit → kein Ruckeln.
         let current = rootEntity.position
         let dx = userX - current.x
         let dz = userZ - current.z
         let dist = (dx * dx + dz * dz).squareRoot()
         if dist > followDeadzone {
+            let factor = 1 - exp(-followRate * Float(deltaTime))
             rootEntity.position = SIMD3<Float>(
-                current.x + dx * followLerp,
+                current.x + dx * factor,
                 current.y,
-                current.z + dz * followLerp
+                current.z + dz * factor
             )
         }
     }
