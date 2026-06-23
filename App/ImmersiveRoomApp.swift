@@ -38,5 +38,10 @@ struct ImmersiveRoomApp: App {
                 }
         }
         .immersionStyle(selection: $immersionStyle, in: .mixed, .full)
+
+        ImmersiveSpace(id: PortalBoxConfiguration.immersiveSpaceID) {
+            PortalBoxImmersiveView()
+                .environment(appModel)
+        }
     }
 }

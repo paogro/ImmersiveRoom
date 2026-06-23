@@ -11,6 +11,7 @@ class AppModel {
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
     var isImmersiveOpen = false
+    var portalBoxIsOpen = false
     var ausgewaehltesThema: Thema? = nil
     var ausgewaehlteThemenProEbene: [UUID] = []
 }
