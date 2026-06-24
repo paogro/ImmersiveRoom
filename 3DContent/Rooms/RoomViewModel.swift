@@ -53,6 +53,31 @@ extension GenericRoomView {
         }
     }
 
+    // MARK: - Home / zurück zum Portal
+
+    /// Home-Button: schließt den aktuellen Themen-Raum und kehrt zur Portal-Space zurück
+    /// (statt zum „Start Experience"-Fenster).
+    func zurueckZumPortal() async {
+        verlasseLesekontext()
+        await dismissImmersiveSpace()
+        appModel.ausgewaehltesThema = nil
+        appModel.immersiveSpaceState = .closed
+        switch await openImmersiveSpace(id: PortalBoxConfiguration.immersiveSpaceID) {
+        case .opened:
+            appModel.portalBoxIsOpen = true
+            appModel.isImmersiveOpen = true
+        case .error, .userCancelled:
+            // Fallback: zurück zur Auswahl-/Start-Ansicht.
+            appModel.portalBoxIsOpen = false
+            appModel.isImmersiveOpen = false
+            openWindow(id: "main")
+        @unknown default:
+            appModel.portalBoxIsOpen = false
+            appModel.isImmersiveOpen = false
+            openWindow(id: "main")
+        }
+    }
+
     // MARK: - UI-Klick-Sounds
 
     /// Spielt einen kurzen, nicht-spatialisierten UI-Klick (One-Shot) auf der SFX-Entity.

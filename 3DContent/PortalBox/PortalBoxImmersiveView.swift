@@ -89,7 +89,7 @@ struct PortalBoxImmersiveView: View {
                 }
 
                 self.box = box
-                box.position = [0, 1, -4]
+                box.position = [0, 1, -2.5]
                 box.scale *= [1, 2, 1]
                 // Box um Y drehen, sodass beim Start die KANTE zwischen Natur (−Z) und
                 // Politik (+X) frontal zum Nutzer zeigt — so erkennt man sofort, dass es
@@ -141,6 +141,9 @@ struct PortalBoxImmersiveView: View {
         .onDisappear {
             previousDevicePosition = nil
             isTransitioning = false
+            // Eigene ARKit-Session beenden, damit der Themen-Raum seine World-Tracking-
+            // Session kollisionsfrei starten kann (sonst läuft sie ins Leere).
+            arKitSession.stop()
             if appModel.portalBoxIsOpen {
                 appModel.portalBoxIsOpen = false
             }

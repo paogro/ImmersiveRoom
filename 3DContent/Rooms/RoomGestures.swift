@@ -23,10 +23,9 @@ extension GenericRoomView {
                 // LesePanelView (SwiftUI) → schliesseLesemodus().
 
                 if name == "zurueck_btn" {
-                    // Home: Immersive Space verlassen, zurück zur Kategorie-Auswahl.
+                    // Home: zurück ins Portal (nicht zum Start-Experience-Fenster).
                     spieleClick(clickBreadcrumb)
-                    appModel.ausgewaehltesThema = nil
-                    openWindow(id: "main")
+                    Task { await zurueckZumPortal() }
                     return
                 }
 

@@ -11,6 +11,8 @@ struct GenericRoomView: View {
     @Environment(AppModel.self) var appModel
     @Environment(\.openWindow) var openWindow
     @Environment(\.dismissWindow) var dismissWindow
+    @Environment(\.openImmersiveSpace) var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 
     // @State properties must live in the struct declaration — Swift extensions
     // in other files cannot access `private` stored properties, so all @State
@@ -445,9 +447,24 @@ struct GenericRoomView: View {
         .gesture(zoomGesture)
         .task { await ladeErsteEbene() }
         .task {
-            // Kopf-Tracking starten, damit richteAufKopfrichtungAus() die aktuelle
-            // Blickrichtung abfragen kann.
-            try? await arkitSession.run([worldTracking])
+            // Kopf-Tracking starten, damit richteAufKopfrichtungAus() + folgeNutzerposition
+            // die Blickrichtung/Position abfragen können. Mit Retry, falls die Portal-Session
+            // beim Übergang noch nicht ganz freigegeben ist; Fehler werden geloggt (kein
+            // stilles try? mehr).
+            guard WorldTrackingProvider.isSupported else {
+                print("World-Tracking nicht unterstützt.")
+                return
+            }
+            for versuch in 1...5 {
+                if worldTracking.state == .running { break }
+                do {
+                    try await arkitSession.run([worldTracking])
+                } catch {
+                    print("World-Tracking Start (Versuch \(versuch)) fehlgeschlagen: \(error)")
+                }
+                if worldTracking.state == .running { break }
+                try? await Task.sleep(for: .milliseconds(300))
+            }
         }
         .task {
             // Raum-Sound starten. Läuft bei jedem (Wieder-)Erscheinen der View erneut,
